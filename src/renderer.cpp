@@ -340,6 +340,14 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
     UnbindTargets();
 }
 
+ImTextureID Renderer::SceneColorTexture() const {
+    if (!scene_srv_) {
+        return 0;
+    }
+    // Dear ImGui's DX11 backend uses the shader resource view pointer as the texture id.
+    return static_cast<ImTextureID>(reinterpret_cast<std::uintptr_t>(scene_srv_.Get()));
+}
+
 void Renderer::BindAndClearBackBuffer() {
     if (!context_ || !backbuffer_rtv_) {
         return;

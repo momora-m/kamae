@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <numbers>
 #include <filesystem>
 #include <string>
@@ -190,9 +189,9 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     const auto target_height = static_cast<UINT>(view_size.y);
     renderer.DrawScene(scene, target_width, target_height);
 
-    ID3D11ShaderResourceView* scene_texture = renderer.SceneColorSrv();
-    if (scene_texture != nullptr) {
-        const ImTextureRef texture(static_cast<ImTextureID>(reinterpret_cast<std::uintptr_t>(scene_texture)));
+    const ImTextureID scene_texture = renderer.SceneColorTexture();
+    if (scene_texture != 0) {
+        const ImTextureRef texture(scene_texture);
         ImGui::GetWindowDrawList()->AddImage(
             texture,
             view_origin,

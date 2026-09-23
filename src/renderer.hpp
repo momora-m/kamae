@@ -11,6 +11,8 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
+#include "imgui.h"
+
 #include <string>
 
 constexpr float kCameraPitchLimit = 1.48f;
@@ -48,7 +50,7 @@ public:
     bool DeviceLost() const { return device_lost_; }
     ID3D11Device* Device() const { return device_.Get(); }
     ID3D11DeviceContext* Context() const { return context_.Get(); }
-    ID3D11ShaderResourceView* SceneColorSrv() const { return scene_srv_.Get(); }
+    ImTextureID SceneColorTexture() const;
     const std::string& ShaderError() const { return shader_error_; }
 
 private:
