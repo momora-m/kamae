@@ -11,15 +11,17 @@
 #include <string>
 #include <system_error>
 
+// imgui_impl_win32.h wraps this prototype in #if 0. Keep the declaration at
+// global scope so WndProc binds to imgui_impl_win32.cpp, not an internal symbol.
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
+    HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
 namespace {
 
 constexpr float kPi = 3.14159265358979323846f;
 constexpr float kPitchLimit = 1.48f;
 
 Renderer* g_renderer = nullptr;
-
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
-    HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
     if (msg == WM_SIZE && wparam != SIZE_MINIMIZED && g_renderer != nullptr) {
