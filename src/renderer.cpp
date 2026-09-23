@@ -272,8 +272,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
         return;
     }
 
-    const float pitch = std::clamp(scene.camera_pitch, -1.48f, 1.48f);
-    const float distance = std::clamp(scene.camera_distance, 1.5f, 20.0f);
+    const float pitch = std::clamp(scene.camera_pitch, -kCameraPitchLimit, kCameraPitchLimit);
+    const float distance = std::clamp(scene.camera_distance, kCameraDistanceMin, kCameraDistanceMax);
     const float cos_pitch = std::cos(pitch);
     const DirectX::XMVECTOR target = DirectX::XMVectorSet(
         scene.cube_position[0], scene.cube_position[1], scene.cube_position[2], 0.0f);

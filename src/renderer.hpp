@@ -13,6 +13,10 @@
 
 #include <string>
 
+constexpr float kCameraPitchLimit = 1.48f;
+constexpr float kCameraDistanceMin = 1.5f;
+constexpr float kCameraDistanceMax = 20.0f;
+
 struct SceneState {
     float clear_color[3] = {0.09f, 0.10f, 0.12f};
     float cube_position[3] = {0.0f, 0.0f, 0.0f};

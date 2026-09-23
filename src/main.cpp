@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <numbers>
 #include <filesystem>
 #include <string>
 #include <system_error>
@@ -18,8 +19,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
 
 namespace {
 
-constexpr float kPi = 3.14159265358979323846f;
-constexpr float kPitchLimit = 1.48f;
 constexpr float kMaxFrameSeconds = 0.1f;
 
 Renderer* g_renderer = nullptr;
@@ -144,9 +143,10 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::End();
 
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse);
-    ImGui::SliderFloat("Distance", &scene.camera_distance, 1.5f, 20.0f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
-    ImGui::Text("Yaw %.1f deg", scene.camera_yaw * (180.0f / kPi));
-    ImGui::Text("Pitch %.1f deg", scene.camera_pitch * (180.0f / kPi));
+    ImGui::SliderFloat(
+        "Distance", &scene.camera_distance, kCameraDistanceMin, kCameraDistanceMax, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+    ImGui::Text("Yaw %.1f deg", scene.camera_yaw * (180.0f / std::numbers::pi_v<float>));
+    ImGui::Text("Pitch %.1f deg", scene.camera_pitch * (180.0f / std::numbers::pi_v<float>));
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the cube.");
     ImGui::TextWrapped("Hover the viewport and press WASD to walk. The cube faces the move.");
     ImGui::End();
@@ -181,7 +181,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
         const ImVec2 delta = ImGui::GetIO().MouseDelta;
         scene.camera_yaw -= delta.x * 0.008f;
-        scene.camera_pitch = std::clamp(scene.camera_pitch - delta.y * 0.008f, -kPitchLimit, kPitchLimit);
+        scene.camera_pitch = std::clamp(
+            scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
     WalkCube(scene, BasisFromCameraYaw(scene.camera_yaw), frame_seconds, ImGui::IsItemHovered());
 
