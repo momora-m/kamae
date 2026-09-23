@@ -104,8 +104,8 @@ void WalkCube(SceneState& scene, float frame_seconds, bool viewport_hovered) {
     const float yaw = scene.camera_yaw;
     const float forward_x = -std::sin(yaw);
     const float forward_z = -std::cos(yaw);
-    const float right_x = std::cos(yaw);
-    const float right_z = -std::sin(yaw);
+    const float right_x = -std::cos(yaw);
+    const float right_z = std::sin(yaw);
     const float distance = kWalkSpeed * frame_seconds;
     const float move_x = (right_x * strafe + forward_x * forward_input) * distance;
     const float move_z = (right_z * strafe + forward_z * forward_input) * distance;
