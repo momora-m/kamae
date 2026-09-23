@@ -6,7 +6,8 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 
 - `docs/adr/0001-dx11-imgui-editor-slice.md` — 今の描画とエディタの範囲
 - `docs/adr/0002-renderer-owns-directx.md` — DirectX は Renderer の中
-- `docs/adr/0003-cube-walks-on-ground.md` — 立方体の歩行と床
+- `docs/adr/0003-cube-walks-on-ground.md` — 床。歩行の向きは 0004 が置き換えた
+- `docs/adr/0004-cube-walks-its-facing.md` — 立方体は自分のヨーで歩く
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 
@@ -18,7 +19,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - Win32、DirectX 11、Dear ImGui（docking）、HLSL は `D3DCompile`
 - 描くものはライティングした立方体ひとつと、その下の床一枚。透視カメラ。ビューのドラッグで立方体の周りを回る
 - ImGui で変えるのはクリア色、立方体の位置と回転、カメラ距離
-- ビューポートにカーソルがあるとき、WASD で立方体が XZ を歩く。前後左右はカメラの向き。ヨーは移動方向
+- ビューポートにカーソルがあるとき、WASD で立方体が XZ を歩く。前後左右は立方体のヨー。歩行はヨーを上書きしない
 
 次を入れるときは、先に ADR を `accepted` にする。それまではコードに入れない。
 
