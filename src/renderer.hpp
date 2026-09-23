@@ -22,7 +22,7 @@ struct SceneState {
     float camera_pitch = 0.40f;
 };
 
-// Win32 window, DirectX 11 device, and one lit cube drawn into an offscreen target.
+// Win32 window, DirectX 11 device, one lit cube, and a ground plate in an offscreen target.
 class Renderer {
 public:
     Renderer() = default;
@@ -71,6 +71,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11InputLayout> input_layout_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertex_buffer_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> index_buffer_;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> floor_vertex_buffer_;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> floor_index_buffer_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> constant_buffer_;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizer_;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> depth_state_;
@@ -80,6 +82,7 @@ private:
     UINT pending_width_ = 0;
     UINT pending_height_ = 0;
     UINT index_count_ = 0;
+    UINT floor_index_count_ = 0;
     bool swap_chain_occluded_ = false;
     bool device_lost_ = false;
     std::string shader_error_;

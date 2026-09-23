@@ -86,6 +86,34 @@ std::string ReadTextFile(const std::filesystem::path& path, std::string& error) 
     return stream.str();
 }
 
+void DrawLitMesh(
+    ID3D11DeviceContext* context,
+    ID3D11Buffer* constant_buffer,
+    ID3D11Buffer* vertex_buffer,
+    ID3D11Buffer* index_buffer,
+    UINT index_count,
+    const FrameConstants& constants) {
+    if (context == nullptr || constant_buffer == nullptr || vertex_buffer == nullptr || index_buffer == nullptr ||
+        index_count == 0) {
+        return;
+    }
+
+    D3D11_MAPPED_SUBRESOURCE mapped{};
+    if (FAILED(context->Map(constant_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped))) {
+        return;
+    }
+    std::memcpy(mapped.pData, &constants, sizeof(constants));
+    context->Unmap(constant_buffer, 0);
+
+    const UINT stride = sizeof(Vertex);
+    const UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
+    context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R16_UINT, 0);
+    context->VSSetConstantBuffers(0, 1, &constant_buffer);
+    context->PSSetConstantBuffers(0, 1, &constant_buffer);
+    context->DrawIndexed(index_count, 0, 0);
+}
+
 std::string BlobMessage(ID3DBlob* blob) {
     if (blob == nullptr || blob->GetBufferSize() == 0) {
         return {};
@@ -262,16 +290,7 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
     const float aspect = static_cast<float>(width) / static_cast<float>(height);
     const DirectX::XMMATRIX projection = DirectX::XMMatrixPerspectiveFovLH(
         DirectX::XMConvertToRadians(50.0f), aspect, 0.05f, 200.0f);
-    const DirectX::XMMATRIX world =
-        DirectX::XMMatrixRotationRollPitchYaw(
-            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[0]),
-            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[1]),
-            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[2])) *
-        DirectX::XMMatrixTranslation(
-            scene.cube_position[0], scene.cube_position[1], scene.cube_position[2]);
-
     FrameConstants constants{};
-    DirectX::XMStoreFloat4x4(&constants.world, world);
     DirectX::XMStoreFloat4x4(&constants.view_projection, view * projection);
     DirectX::XMStoreFloat4(
         &constants.light_direction,
@@ -279,32 +298,44 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
     constants.light_color = {1.0f, 0.96f, 0.90f, 1.0f};
     constants.ambient_color = {0.14f, 0.15f, 0.18f, 1.0f};
     DirectX::XMStoreFloat4(&constants.camera_position, eye);
-    constants.albedo = {0.78f, 0.48f, 0.27f, 1.0f};
 
-    D3D11_MAPPED_SUBRESOURCE mapped{};
-    if (FAILED(context_->Map(constant_buffer_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped))) {
-        UnbindTargets();
-        return;
-    }
-    std::memcpy(mapped.pData, &constants, sizeof(constants));
-    context_->Unmap(constant_buffer_.Get(), 0);
-
-    const UINT stride = sizeof(Vertex);
-    const UINT offset = 0;
     context_->IASetInputLayout(input_layout_.Get());
     context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context_->IASetVertexBuffers(0, 1, vertex_buffer_.GetAddressOf(), &stride, &offset);
-    context_->IASetIndexBuffer(index_buffer_.Get(), DXGI_FORMAT_R16_UINT, 0);
     context_->VSSetShader(vertex_shader_.Get(), nullptr, 0);
     context_->PSSetShader(pixel_shader_.Get(), nullptr, 0);
     context_->GSSetShader(nullptr, nullptr, 0);
-    ID3D11Buffer* constants_buffer = constant_buffer_.Get();
-    context_->VSSetConstantBuffers(0, 1, &constants_buffer);
-    context_->PSSetConstantBuffers(0, 1, &constants_buffer);
     context_->RSSetState(rasterizer_.Get());
     context_->OMSetDepthStencilState(depth_state_.Get(), 0);
     context_->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-    context_->DrawIndexed(index_count_, 0, 0);
+
+    // Cube half-extent is 0.5 at y = 0, so the plate sits just under the bottom face.
+    FrameConstants floor = constants;
+    DirectX::XMStoreFloat4x4(&floor.world, DirectX::XMMatrixIdentity());
+    floor.albedo = {0.32f, 0.34f, 0.33f, 1.0f};
+    DrawLitMesh(
+        context_.Get(),
+        constant_buffer_.Get(),
+        floor_vertex_buffer_.Get(),
+        floor_index_buffer_.Get(),
+        floor_index_count_,
+        floor);
+
+    const DirectX::XMMATRIX world =
+        DirectX::XMMatrixRotationRollPitchYaw(
+            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[0]),
+            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[1]),
+            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[2])) *
+        DirectX::XMMatrixTranslation(
+            scene.cube_position[0], scene.cube_position[1], scene.cube_position[2]);
+    DirectX::XMStoreFloat4x4(&constants.world, world);
+    constants.albedo = {0.78f, 0.48f, 0.27f, 1.0f};
+    DrawLitMesh(
+        context_.Get(),
+        constant_buffer_.Get(),
+        vertex_buffer_.Get(),
+        index_buffer_.Get(),
+        index_count_,
+        constants);
 
     UnbindTargets();
 }
@@ -343,6 +374,8 @@ void Renderer::Shutdown() {
     depth_state_.Reset();
     rasterizer_.Reset();
     constant_buffer_.Reset();
+    floor_index_buffer_.Reset();
+    floor_vertex_buffer_.Reset();
     index_buffer_.Reset();
     vertex_buffer_.Reset();
     input_layout_.Reset();
@@ -424,6 +457,42 @@ bool Renderer::CreatePipeline(std::wstring& error) {
     hr = device_->CreateBuffer(&index_desc, &index_data, index_buffer_.GetAddressOf());
     if (FAILED(hr)) {
         error = HresultMessage(L"インデックスバッファを作成できませんでした。", hr);
+        return false;
+    }
+
+    // Same winding as the cube's top face. Y is just below the cube so the bottom face does not z-fight.
+    constexpr float kFloorY = -0.501f;
+    constexpr float kFloorHalf = 20.0f;
+    const Vertex floor_vertices[] = {
+        {{-kFloorHalf, kFloorY, kFloorHalf}, {0.0f, 1.0f, 0.0f}},
+        {{kFloorHalf, kFloorY, kFloorHalf}, {0.0f, 1.0f, 0.0f}},
+        {{kFloorHalf, kFloorY, -kFloorHalf}, {0.0f, 1.0f, 0.0f}},
+        {{-kFloorHalf, kFloorY, -kFloorHalf}, {0.0f, 1.0f, 0.0f}},
+    };
+    const std::uint16_t floor_indices[] = {0, 1, 2, 0, 2, 3};
+    floor_index_count_ = static_cast<UINT>(std::size(floor_indices));
+
+    D3D11_BUFFER_DESC floor_vertex_desc{};
+    floor_vertex_desc.ByteWidth = sizeof(floor_vertices);
+    floor_vertex_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    floor_vertex_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA floor_vertex_data{};
+    floor_vertex_data.pSysMem = floor_vertices;
+    hr = device_->CreateBuffer(&floor_vertex_desc, &floor_vertex_data, floor_vertex_buffer_.GetAddressOf());
+    if (FAILED(hr)) {
+        error = HresultMessage(L"床の頂点バッファを作成できませんでした。", hr);
+        return false;
+    }
+
+    D3D11_BUFFER_DESC floor_index_desc{};
+    floor_index_desc.ByteWidth = sizeof(floor_indices);
+    floor_index_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    floor_index_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA floor_index_data{};
+    floor_index_data.pSysMem = floor_indices;
+    hr = device_->CreateBuffer(&floor_index_desc, &floor_index_data, floor_index_buffer_.GetAddressOf());
+    if (FAILED(hr)) {
+        error = HresultMessage(L"床のインデックスバッファを作成できませんでした。", hr);
         return false;
     }
 

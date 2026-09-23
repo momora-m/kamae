@@ -6,6 +6,7 @@
 #include "imgui_internal.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -18,6 +19,8 @@ namespace {
 
 constexpr float kPi = 3.14159265358979323846f;
 constexpr float kPitchLimit = 1.48f;
+constexpr float kWalkSpeed = 2.5f;
+constexpr float kMaxFrameSeconds = 0.1f;
 
 Renderer* g_renderer = nullptr;
 
@@ -47,6 +50,70 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
     return DefWindowProcW(hwnd, msg, wparam, lparam);
 }
 
+float FrameSeconds() {
+    static LARGE_INTEGER frequency{};
+    static LARGE_INTEGER previous{};
+    static bool started = false;
+    if (!started) {
+        if (!QueryPerformanceFrequency(&frequency) || frequency.QuadPart <= 0) {
+            return 0.0f;
+        }
+        QueryPerformanceCounter(&previous);
+        started = true;
+        return 0.0f;
+    }
+
+    LARGE_INTEGER now{};
+    QueryPerformanceCounter(&now);
+    const float seconds = static_cast<float>(now.QuadPart - previous.QuadPart) /
+                          static_cast<float>(frequency.QuadPart);
+    previous = now;
+    if (seconds < 0.0f) {
+        return 0.0f;
+    }
+    return std::min(seconds, kMaxFrameSeconds);
+}
+
+// Camera yaw 0 looks toward -Z. W follows that horizontal direction, and D is to the right.
+void WalkCube(SceneState& scene, float frame_seconds, bool viewport_hovered) {
+    if (!viewport_hovered || ImGui::GetIO().WantTextInput || frame_seconds <= 0.0f) {
+        return;
+    }
+
+    float strafe = 0.0f;
+    float forward_input = 0.0f;
+    if (ImGui::IsKeyDown(ImGuiKey_D)) {
+        strafe += 1.0f;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_A)) {
+        strafe -= 1.0f;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_W)) {
+        forward_input += 1.0f;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_S)) {
+        forward_input -= 1.0f;
+    }
+    const float length = std::sqrt(strafe * strafe + forward_input * forward_input);
+    if (length < 0.001f) {
+        return;
+    }
+    strafe /= length;
+    forward_input /= length;
+
+    const float yaw = scene.camera_yaw;
+    const float forward_x = -std::sin(yaw);
+    const float forward_z = -std::cos(yaw);
+    const float right_x = std::cos(yaw);
+    const float right_z = -std::sin(yaw);
+    const float distance = kWalkSpeed * frame_seconds;
+    const float move_x = (right_x * strafe + forward_x * forward_input) * distance;
+    const float move_z = (right_z * strafe + forward_z * forward_input) * distance;
+    scene.cube_position[0] += move_x;
+    scene.cube_position[2] += move_z;
+    scene.cube_rotation_degrees[1] = std::atan2(move_x, move_z) * (180.0f / kPi);
+}
+
 void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
     ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
     ImGui::DockBuilderSetNodeSize(dockspace_id, node_size);
@@ -70,7 +137,7 @@ void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
     ImGui::DockBuilderFinish(dockspace_id);
 }
 
-void ShowScenePanels(Renderer& renderer, SceneState& scene) {
+void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds) {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
@@ -111,6 +178,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene) {
     ImGui::Text("Yaw %.1f deg", scene.camera_yaw * (180.0f / kPi));
     ImGui::Text("Pitch %.1f deg", scene.camera_pitch * (180.0f / kPi));
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the cube.");
+    ImGui::TextWrapped("Hover the viewport and press WASD to walk. The cube faces the move.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -145,6 +213,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene) {
         scene.camera_yaw -= delta.x * 0.008f;
         scene.camera_pitch = std::clamp(scene.camera_pitch - delta.y * 0.008f, -kPitchLimit, kPitchLimit);
     }
+    WalkCube(scene, frame_seconds, ImGui::IsItemHovered());
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);
@@ -258,6 +327,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int show_command) {
         if (done) {
             break;
         }
+        const float frame_seconds = FrameSeconds();
         if (!renderer.PrepareFrame()) {
             continue;
         }
@@ -265,7 +335,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int show_command) {
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
-        ShowScenePanels(renderer, scene);
+        ShowScenePanels(renderer, scene, frame_seconds);
         ImGui::Render();
 
         renderer.BindAndClearBackBuffer();
