@@ -1,0 +1,13 @@
+build/
+out/
+.vs/
+CMakeUserPresets.json
+CMakeCache.txt
+CMakeFiles/
+editor_layout.ini
+imgui.ini
+*.user
+*.suo
+*.obj
+*.pdb
+*.ilk
