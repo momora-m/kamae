@@ -44,6 +44,8 @@ add_executable(editor WIN32
   src/main.cpp
   src/renderer.cpp
   src/renderer.hpp
+  src/walk.cpp
+  src/walk.hpp
   shaders/lit.hlsl
   ${IMGUI_SOURCES}
 )
