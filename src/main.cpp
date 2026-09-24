@@ -152,8 +152,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
     ImGui::End();
 
-    bool yaw_held[kSubjectCount]{};
-    ShowSubjectPanel(scene, yaw_held, kSubjectCount);
+    bool yaw_held[kSubjectCapacity]{};
+    ShowSubjectPanel(scene, yaw_held, kSubjectCapacity);
 
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::SliderFloat(
@@ -209,12 +209,12 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         const float previous_z = scene.subjects[kPlayer].position[2];
         WalkCube(
             scene.subjects[kPlayer], basis, frame_seconds, viewport_hovered, scene.walk_with_camera_yaw);
-        ResolveHorizontalOverlap(scene.subjects, kSubjectCount, kPlayer, previous_x, previous_z);
+        ResolveHorizontalOverlap(scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z);
         const bool attack_pressed = viewport_hovered && !ImGui::GetIO().WantTextInput &&
                                     ImGui::IsKeyPressed(ImGuiKey_Space, false);
         Attack(
             scene.subjects,
-            kSubjectCount,
+            scene.subject_count,
             kPlayer,
             frame_seconds,
             attack_pressed,
@@ -222,14 +222,16 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     } else {
         ClearAttackMark(scene.attack_marks[kPlayer]);
     }
-    ApproachAndAttack(
-        scene.subjects,
-        kSubjectCount,
-        kOpponent,
-        kPlayer,
-        frame_seconds,
-        &scene.attack_marks[kOpponent],
-        yaw_held[kOpponent]);
+    for (int index = kPlayer + 1; index < scene.subject_count; ++index) {
+        ApproachAndAttack(
+            scene.subjects,
+            scene.subject_count,
+            index,
+            kPlayer,
+            frame_seconds,
+            &scene.attack_marks[index],
+            yaw_held[index]);
+    }
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);
@@ -244,7 +246,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             ImVec2(view_origin.x + view_size.x, view_origin.y + view_size.y));
     }
     const float line_height = ImGui::GetTextLineHeight();
-    for (int index = 0; index < kSubjectCount; ++index) {
+    for (int index = 0; index < scene.subject_count; ++index) {
         char remaining_line[64];
         std::snprintf(
             remaining_line,

@@ -1,6 +1,7 @@
 #include "subject_panel.hpp"
 
 #include "renderer.hpp"
+#include "roster.hpp"
 
 #include "imgui.h"
 
@@ -13,7 +14,28 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
 
     ImGui::Begin("Subjects", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::TextUnformatted("The first subject is the player. Roles stay on the list.");
-    for (int index = 0; index < kSubjectCount; ++index) {
+    const bool can_add = CanAddSubject(scene);
+    if (!can_add) {
+        ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Add opponent")) {
+        AddSubject(scene);
+    }
+    if (!can_add) {
+        ImGui::EndDisabled();
+    }
+    ImGui::SameLine();
+    const bool can_remove = CanRemoveSubject(scene);
+    if (!can_remove) {
+        ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Remove last")) {
+        RemoveLastSubject(scene);
+    }
+    if (!can_remove) {
+        ImGui::EndDisabled();
+    }
+    for (int index = 0; index < scene.subject_count; ++index) {
         ImGui::PushID(index);
         if (index > 0) {
             ImGui::Separator();

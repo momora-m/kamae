@@ -346,7 +346,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             constants);
     }
 
-    for (const Subject& subject : scene.subjects) {
+    for (int index = 0; index < scene.subject_count && index < kSubjectCapacity; ++index) {
+        const Subject& subject = scene.subjects[index];
         if (subject.remaining <= 0) {
             continue;
         }
@@ -367,7 +368,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             constants);
     }
 
-    for (const AttackMark& mark : scene.attack_marks) {
+    for (int index = 0; index < scene.subject_count && index < kSubjectCapacity; ++index) {
+        const AttackMark& mark = scene.attack_marks[index];
         if (!mark.visible) {
             continue;
         }

@@ -56,6 +56,8 @@ add_executable(editor WIN32
   src/approach.hpp
   src/subject_panel.cpp
   src/subject_panel.hpp
+  src/roster.cpp
+  src/roster.hpp
   shaders/lit.hlsl
   ${IMGUI_SOURCES}
 )
