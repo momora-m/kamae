@@ -48,6 +48,8 @@ add_executable(editor WIN32
   src/walk.hpp
   src/overlap.cpp
   src/overlap.hpp
+  src/attack.cpp
+  src/attack.hpp
   shaders/lit.hlsl
   ${IMGUI_SOURCES}
 )

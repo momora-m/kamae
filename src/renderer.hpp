@@ -24,18 +24,21 @@ constexpr int kSubjectCount = 2;
 constexpr int kPlayer = 0;
 
 // One body in the shared list. Index 0 is the player. A third body is another element.
+// remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
 struct Subject {
     float position[3] = {0.0f, 0.0f, 0.0f};
     float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
     float color[3] = {0.78f, 0.48f, 0.27f};
+    int remaining = 3;
+    float attack_cooldown = 0.0f;
 };
 
 struct SceneState {
     float clear_color[3] = {0.09f, 0.10f, 0.12f};
     // Player stays at the origin. Opponent is (0, 0, 4), yaw 180, facing the player along -Z.
     Subject subjects[kSubjectCount] = {
-        Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}},
-        Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}},
+        Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}, 3},
+        Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}, 3},
     };
     float camera_distance = 3.5f;
     float camera_yaw = 0.65f;

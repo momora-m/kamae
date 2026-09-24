@@ -347,6 +347,9 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
     }
 
     for (const Subject& subject : scene.subjects) {
+        if (subject.remaining <= 0) {
+            continue;
+        }
         const DirectX::XMMATRIX world =
             DirectX::XMMatrixRotationRollPitchYaw(
                 DirectX::XMConvertToRadians(subject.rotation_degrees[0]),
