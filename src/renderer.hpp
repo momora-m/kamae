@@ -13,6 +13,8 @@
 
 #include "imgui.h"
 
+#include "attack_mark.hpp"
+
 #include <string>
 
 constexpr float kCameraPitchLimit = 1.48f;
@@ -44,6 +46,7 @@ struct SceneState {
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
     bool walk_with_camera_yaw = false;
+    AttackMark attack_mark{};
 };
 
 static_assert(kPlayer >= 0 && kPlayer < kSubjectCount, "the player is the first subject");
