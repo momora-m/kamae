@@ -15,7 +15,7 @@ constexpr float kWalkSpeed = 2.5f;
 }  // namespace
 
 void WalkCube(
-    SceneState& scene,
+    Subject& subject,
     const HorizontalBasis& basis,
     float frame_seconds,
     bool viewport_hovered,
@@ -49,9 +49,9 @@ void WalkCube(
     const float move_x = (basis.right_x * strafe + basis.forward_x * forward_input) * distance;
     const float move_z = (basis.right_z * strafe + basis.forward_z * forward_input) * distance;
     constexpr float kWalkLimit = kFloorHalfExtent - kCubeHalfExtent;
-    scene.cube_position[0] = std::clamp(scene.cube_position[0] + move_x, -kWalkLimit, kWalkLimit);
-    scene.cube_position[2] = std::clamp(scene.cube_position[2] + move_z, -kWalkLimit, kWalkLimit);
+    subject.position[0] = std::clamp(subject.position[0] + move_x, -kWalkLimit, kWalkLimit);
+    subject.position[2] = std::clamp(subject.position[2] + move_z, -kWalkLimit, kWalkLimit);
     if (face_move) {
-        scene.cube_rotation_degrees[1] = std::atan2(move_x, move_z) * (180.0f / std::numbers::pi_v<float>);
+        subject.rotation_degrees[1] = std::atan2(move_x, move_z) * (180.0f / std::numbers::pi_v<float>);
     }
 }

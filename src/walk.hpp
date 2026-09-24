@@ -1,6 +1,6 @@
 #pragma once
 
-struct SceneState;
+struct Subject;
 
 // Horizontal move axes on the XZ plane. WalkCube does not know where they came from.
 struct HorizontalBasis {
@@ -10,8 +10,9 @@ struct HorizontalBasis {
     float right_z;
 };
 
+// Moves one subject. The caller passes the player, so the floor edge applies only to them.
 void WalkCube(
-    SceneState& scene,
+    Subject& subject,
     const HorizontalBasis& basis,
     float frame_seconds,
     bool viewport_hovered,

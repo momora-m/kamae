@@ -2,6 +2,7 @@
 
 - 状態: `accepted`
 - 日付: 2026-09-23
+- 追加: `SceneState` の立方体一つは、主体の並びに置き換わった。[0007](0007-player-and-opponent-one-loop.md)。DirectX の型を外へ出さないことは、ここが現在の決定である。
 
 ## 文脈
 
