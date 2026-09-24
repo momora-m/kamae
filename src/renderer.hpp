@@ -20,18 +20,32 @@ constexpr float kCameraDistanceMin = 1.5f;
 constexpr float kCameraDistanceMax = 20.0f;
 constexpr float kCubeHalfExtent = 0.5f;
 constexpr float kFloorHalfExtent = 20.0f;
+constexpr int kSubjectCount = 2;
+constexpr int kPlayer = 0;
+
+// One body in the shared list. Index 0 is the player. A third body is another element.
+struct Subject {
+    float position[3] = {0.0f, 0.0f, 0.0f};
+    float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
+    float color[3] = {0.78f, 0.48f, 0.27f};
+};
 
 struct SceneState {
     float clear_color[3] = {0.09f, 0.10f, 0.12f};
-    float cube_position[3] = {0.0f, 0.0f, 0.0f};
-    float cube_rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
+    // Player stays at the origin. Opponent is (0, 0, 4), yaw 180, facing the player along -Z.
+    Subject subjects[kSubjectCount] = {
+        Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}},
+        Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}},
+    };
     float camera_distance = 3.5f;
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
     bool walk_with_camera_yaw = false;
 };
 
-// Win32 window, DirectX 11 device, one lit cube, and a ground plate in an offscreen target.
+static_assert(kPlayer >= 0 && kPlayer < kSubjectCount, "the player is the first subject");
+
+// Win32 window, DirectX 11 device, one lit cube per subject, and a ground plate in an offscreen target.
 class Renderer {
 public:
     Renderer() = default;

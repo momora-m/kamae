@@ -102,16 +102,16 @@ void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
     ImGuiID properties = 0;
     ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.30f, &properties, &viewport_node);
 
-    ImGuiID cube_node = 0;
+    ImGuiID player_node = 0;
     ImGuiID lower = 0;
-    ImGui::DockBuilderSplitNode(properties, ImGuiDir_Down, 0.64f, &lower, &cube_node);
+    ImGui::DockBuilderSplitNode(properties, ImGuiDir_Down, 0.64f, &lower, &player_node);
 
     ImGuiID camera_node = 0;
     ImGuiID render_node = 0;
     ImGui::DockBuilderSplitNode(lower, ImGuiDir_Down, 0.50f, &render_node, &camera_node);
 
     ImGui::DockBuilderDockWindow("Viewport", viewport_node);
-    ImGui::DockBuilderDockWindow("Cube", cube_node);
+    ImGui::DockBuilderDockWindow("Player", player_node);
     ImGui::DockBuilderDockWindow("Camera", camera_node);
     ImGui::DockBuilderDockWindow("Render", render_node);
     ImGui::DockBuilderFinish(dockspace_id);
@@ -146,11 +146,11 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
     ImGui::End();
 
-    ImGui::Begin("Cube", nullptr, ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Player", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::TextUnformatted("World position");
-    ImGui::DragFloat3("Position", scene.cube_position, 0.01f);
+    ImGui::DragFloat3("Position", scene.subjects[kPlayer].position, 0.01f);
     ImGui::TextUnformatted("Euler rotation in degrees");
-    ImGui::DragFloat3("Rotation", scene.cube_rotation_degrees, 0.5f);
+    ImGui::DragFloat3("Rotation", scene.subjects[kPlayer].rotation_degrees, 0.5f);
     ImGui::End();
 
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -158,10 +158,10 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         "Distance", &scene.camera_distance, kCameraDistanceMin, kCameraDistanceMax, "%.2f", ImGuiSliderFlags_AlwaysClamp);
     ImGui::Text("Yaw %.1f deg", scene.camera_yaw * (180.0f / std::numbers::pi_v<float>));
     ImGui::Text("Pitch %.1f deg", scene.camera_pitch * (180.0f / std::numbers::pi_v<float>));
-    ImGui::TextWrapped("Left-drag inside the viewport to orbit around the cube.");
+    ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "Hover the viewport and press WASD. Off, the cube walks along its own yaw. On, it walks along the camera yaw and faces the move.");
+        "Hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -197,10 +197,12 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         scene.camera_pitch = std::clamp(
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
-    const float cube_yaw = scene.cube_rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    const float player_yaw =
+        scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
     const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
-                                                             : BasisFromCubeYaw(cube_yaw);
-    WalkCube(scene, basis, frame_seconds, ImGui::IsItemHovered(), scene.walk_with_camera_yaw);
+                                                             : BasisFromCubeYaw(player_yaw);
+    WalkCube(
+        scene.subjects[kPlayer], basis, frame_seconds, ImGui::IsItemHovered(), scene.walk_with_camera_yaw);
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);

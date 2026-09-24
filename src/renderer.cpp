@@ -275,8 +275,9 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
     const float pitch = std::clamp(scene.camera_pitch, -kCameraPitchLimit, kCameraPitchLimit);
     const float distance = std::clamp(scene.camera_distance, kCameraDistanceMin, kCameraDistanceMax);
     const float cos_pitch = std::cos(pitch);
+    const Subject& player = scene.subjects[kPlayer];
     const DirectX::XMVECTOR target = DirectX::XMVectorSet(
-        scene.cube_position[0], scene.cube_position[1], scene.cube_position[2], 0.0f);
+        player.position[0], player.position[1], player.position[2], 0.0f);
     const DirectX::XMVECTOR eye = DirectX::XMVectorAdd(
         target,
         DirectX::XMVectorSet(
@@ -320,22 +321,23 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
         floor_index_count_,
         floor);
 
-    const DirectX::XMMATRIX world =
-        DirectX::XMMatrixRotationRollPitchYaw(
-            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[0]),
-            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[1]),
-            DirectX::XMConvertToRadians(scene.cube_rotation_degrees[2])) *
-        DirectX::XMMatrixTranslation(
-            scene.cube_position[0], scene.cube_position[1], scene.cube_position[2]);
-    DirectX::XMStoreFloat4x4(&constants.world, world);
-    constants.albedo = {0.78f, 0.48f, 0.27f, 1.0f};
-    DrawLitMesh(
-        context_.Get(),
-        constant_buffer_.Get(),
-        vertex_buffer_.Get(),
-        index_buffer_.Get(),
-        index_count_,
-        constants);
+    for (const Subject& subject : scene.subjects) {
+        const DirectX::XMMATRIX world =
+            DirectX::XMMatrixRotationRollPitchYaw(
+                DirectX::XMConvertToRadians(subject.rotation_degrees[0]),
+                DirectX::XMConvertToRadians(subject.rotation_degrees[1]),
+                DirectX::XMConvertToRadians(subject.rotation_degrees[2])) *
+            DirectX::XMMatrixTranslation(subject.position[0], subject.position[1], subject.position[2]);
+        DirectX::XMStoreFloat4x4(&constants.world, world);
+        constants.albedo = {subject.color[0], subject.color[1], subject.color[2], 1.0f};
+        DrawLitMesh(
+            context_.Get(),
+            constant_buffer_.Get(),
+            vertex_buffer_.Get(),
+            index_buffer_.Get(),
+            index_count_,
+            constants);
+    }
 
     UnbindTargets();
 }
