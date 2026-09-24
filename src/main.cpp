@@ -1,3 +1,4 @@
+#include "overlap.hpp"
 #include "renderer.hpp"
 #include "walk.hpp"
 
@@ -201,8 +202,12 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
     const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
                                                              : BasisFromCubeYaw(player_yaw);
+    const float previous_x = scene.subjects[kPlayer].position[0];
+    const float previous_z = scene.subjects[kPlayer].position[2];
     WalkCube(
         scene.subjects[kPlayer], basis, frame_seconds, ImGui::IsItemHovered(), scene.walk_with_camera_yaw);
+    ResolveHorizontalOverlap(
+        scene.subjects, kSubjectCount, kPlayer, previous_x, previous_z);
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);
