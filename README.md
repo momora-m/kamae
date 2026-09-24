@@ -1,8 +1,8 @@
 # editor
 
-Windows 向けアクションゲームエンジンの、最初の画面です。実行ファイルはひとつだけで、名前は `editor` です。Win32 ウィンドウに DirectX 11 でライティングした立方体と床を描き、Dear ImGui のドッキングでクリア色、立方体の位置と回転、カメラ距離をその場で変えられます。ビューポート上の左ドラッグで、カメラは立方体の周りを回ります。ビューポートにマウスがあるとき、WASD で立方体が床の上を歩きます。前後左右は立方体のヨーで、歩行はヨーを変えません。向きは Cube パネルの回転だけです。
+Windows 向けアクションゲームエンジンの、最初の画面です。実行ファイルはひとつだけで、名前は `editor` です。Win32 ウィンドウに DirectX 11 でライティングした立方体と床を描き、Dear ImGui のドッキングでクリア色、立方体の位置と回転、カメラ距離をその場で変えられます。ビューポート上の左ドラッグで、カメラは立方体の周りを回ります。ビューポートにマウスがあるとき、WASD で立方体が床の上を歩きます。既定の前後左右は立方体のヨーで、歩行はヨーを変えません。向きは Cube パネルの回転だけです。Camera パネルで切り替えると、前後左右はカメラの水平なヨーになり、移動中だけ立方体がその方向を向きます。
 
-物理、アニメーション、戦闘、当たり判定は含めていません。判断の記録は [docs/adr/0001-dx11-imgui-editor-slice.md](docs/adr/0001-dx11-imgui-editor-slice.md)、[docs/adr/0003-cube-walks-on-ground.md](docs/adr/0003-cube-walks-on-ground.md)、[docs/adr/0004-cube-walks-its-facing.md](docs/adr/0004-cube-walks-its-facing.md) にあります。
+物理、アニメーション、戦闘、当たり判定は含めていません。判断の記録は [docs/adr/0001-dx11-imgui-editor-slice.md](docs/adr/0001-dx11-imgui-editor-slice.md)、[docs/adr/0003-cube-walks-on-ground.md](docs/adr/0003-cube-walks-on-ground.md)、[docs/adr/0004-cube-walks-its-facing.md](docs/adr/0004-cube-walks-its-facing.md)、[docs/adr/0005-walk-along-camera-yaw.md](docs/adr/0005-walk-along-camera-yaw.md) にあります。
 
 ## 必要な環境
 
@@ -35,9 +35,9 @@ Visual Studio から起動する場合、作業ディレクトリは実行ファ
 
 | パネル | 内容 |
 | --- | --- |
-| Viewport | 立方体と床。左ドラッグでカメラが周回。マウスがあるとき WASD で、立方体のヨーに沿って歩く |
+| Viewport | 立方体と床。左ドラッグでカメラが周回。マウスがあるとき WASD で歩く |
 | Cube | 位置と回転（度） |
-| Camera | 立方体からの距離 |
+| Camera | 立方体からの距離。歩行をカメラのヨーに合わせる切り替え |
 | Render | クリア色 |
 
 ## この環境では未検証

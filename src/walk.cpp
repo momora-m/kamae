@@ -5,6 +5,7 @@
 #include "imgui.h"
 
 #include <cmath>
+#include <numbers>
 
 namespace {
 
@@ -12,7 +13,12 @@ constexpr float kWalkSpeed = 2.5f;
 
 }  // namespace
 
-void WalkCube(SceneState& scene, const HorizontalBasis& basis, float frame_seconds, bool viewport_hovered) {
+void WalkCube(
+    SceneState& scene,
+    const HorizontalBasis& basis,
+    float frame_seconds,
+    bool viewport_hovered,
+    bool face_move) {
     if (!viewport_hovered || ImGui::GetIO().WantTextInput || frame_seconds <= 0.0f) {
         return;
     }
@@ -43,4 +49,7 @@ void WalkCube(SceneState& scene, const HorizontalBasis& basis, float frame_secon
     const float move_z = (basis.right_z * strafe + basis.forward_z * forward_input) * distance;
     scene.cube_position[0] += move_x;
     scene.cube_position[2] += move_z;
+    if (face_move) {
+        scene.cube_rotation_degrees[1] = std::atan2(move_x, move_z) * (180.0f / std::numbers::pi_v<float>);
+    }
 }
