@@ -10,4 +10,9 @@ struct HorizontalBasis {
     float right_z;
 };
 
-void WalkCube(SceneState& scene, const HorizontalBasis& basis, float frame_seconds, bool viewport_hovered);
+void WalkCube(
+    SceneState& scene,
+    const HorizontalBasis& basis,
+    float frame_seconds,
+    bool viewport_hovered,
+    bool face_move);

@@ -72,6 +72,16 @@ float FrameSeconds() {
     return std::min(seconds, kMaxFrameSeconds);
 }
 
+// Camera yaw 0 looks toward -Z. Pitch is ignored so the move stays on the ground.
+HorizontalBasis BasisFromCameraYaw(float yaw) {
+    return HorizontalBasis{
+        -std::sin(yaw),
+        -std::cos(yaw),
+        -std::cos(yaw),
+        std::sin(yaw),
+    };
+}
+
 // Cube yaw 0 faces +Z. Walking reads this yaw, not the camera.
 HorizontalBasis BasisFromCubeYaw(float yaw_radians) {
     const float s = std::sin(yaw_radians);
@@ -149,7 +159,9 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::Text("Yaw %.1f deg", scene.camera_yaw * (180.0f / std::numbers::pi_v<float>));
     ImGui::Text("Pitch %.1f deg", scene.camera_pitch * (180.0f / std::numbers::pi_v<float>));
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the cube.");
-    ImGui::TextWrapped("Hover the viewport and press WASD to walk along the cube's yaw.");
+    ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
+    ImGui::TextWrapped(
+        "Hover the viewport and press WASD. Off, the cube walks along its own yaw. On, it walks along the camera yaw and faces the move.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -186,7 +198,9 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
     const float cube_yaw = scene.cube_rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
-    WalkCube(scene, BasisFromCubeYaw(cube_yaw), frame_seconds, ImGui::IsItemHovered());
+    const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
+                                                             : BasisFromCubeYaw(cube_yaw);
+    WalkCube(scene, basis, frame_seconds, ImGui::IsItemHovered(), scene.walk_with_camera_yaw);
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);

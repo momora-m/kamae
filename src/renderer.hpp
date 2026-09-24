@@ -26,6 +26,7 @@ struct SceneState {
     float camera_distance = 3.5f;
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
+    bool walk_with_camera_yaw = false;
 };
 
 // Win32 window, DirectX 11 device, one lit cube, and a ground plate in an offscreen target.
