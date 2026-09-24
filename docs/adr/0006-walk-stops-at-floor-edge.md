@@ -2,7 +2,8 @@
 
 - 状態: `accepted`
 - 日付: 2026-09-24
-- 追加: 止まる対象はプレイヤーだけである。[0007](0007-player-and-opponent-one-loop.md)。範囲の決め方はここが現在の決定である。
+- 追加: 止まる対象はプレイヤーだけである。[0007](0007-player-and-opponent-one-loop.md)。
+- 置き換え: ±19.5 の床端クランプは [0008](0008-walk-stops-before-wall-and-subject.md) が置き換えた。壁と他の主体の手前で止まることが現在の決定である。
 
 ## 文脈
 

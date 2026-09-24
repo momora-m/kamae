@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#include "overlap.hpp"
+
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
 
@@ -320,6 +322,29 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
         floor_index_buffer_.Get(),
         floor_index_count_,
         floor);
+
+    AxisBox walls[kWallCount];
+    WallBoxes(walls);
+    for (const AxisBox& wall : walls) {
+        const float size_x = wall.max_x - wall.min_x;
+        const float size_y = wall.max_y - wall.min_y;
+        const float size_z = wall.max_z - wall.min_z;
+        const DirectX::XMMATRIX world =
+            DirectX::XMMatrixScaling(size_x, size_y, size_z) *
+            DirectX::XMMatrixTranslation(
+                (wall.min_x + wall.max_x) * 0.5f,
+                (wall.min_y + wall.max_y) * 0.5f,
+                (wall.min_z + wall.max_z) * 0.5f);
+        DirectX::XMStoreFloat4x4(&constants.world, world);
+        constants.albedo = {0.62f, 0.60f, 0.55f, 1.0f};
+        DrawLitMesh(
+            context_.Get(),
+            constant_buffer_.Get(),
+            vertex_buffer_.Get(),
+            index_buffer_.Get(),
+            index_count_,
+            constants);
+    }
 
     for (const Subject& subject : scene.subjects) {
         const DirectX::XMMATRIX world =

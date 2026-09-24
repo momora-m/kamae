@@ -10,7 +10,7 @@ struct HorizontalBasis {
     float right_z;
 };
 
-// Moves one subject. The caller passes the player, so the floor edge applies only to them.
+// Moves one subject on XZ. Overlap with walls and other subjects is a later step.
 void WalkCube(
     Subject& subject,
     const HorizontalBasis& basis,
