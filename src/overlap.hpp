@@ -14,6 +14,12 @@ struct AxisBox {
 
 constexpr int kWallCount = 4;
 
+// The subject's axis-aligned cube. Yaw is ignored, matching walk and attack.
+AxisBox SubjectBox(const Subject& subject);
+
+// True when the volumes intersect. Shared faces alone do not overlap.
+bool AxisBoxesOverlap(const AxisBox& a, const AxisBox& b);
+
 // Four immovable boxes. Inner faces sit on x, z = ±kFloorHalfExtent.
 void WallBoxes(AxisBox (&walls)[kWallCount]);
 

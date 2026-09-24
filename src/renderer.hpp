@@ -24,6 +24,7 @@ constexpr float kCubeHalfExtent = 0.5f;
 constexpr float kFloorHalfExtent = 20.0f;
 constexpr int kSubjectCount = 2;
 constexpr int kPlayer = 0;
+constexpr int kOpponent = 1;
 
 // One body in the shared list. Index 0 is the player. A third body is another element.
 // remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
@@ -46,10 +47,11 @@ struct SceneState {
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
     bool walk_with_camera_yaw = false;
-    AttackMark attack_mark{};
+    AttackMark attack_marks[kSubjectCount]{};
 };
 
 static_assert(kPlayer >= 0 && kPlayer < kSubjectCount, "the player is the first subject");
+static_assert(kOpponent > kPlayer && kOpponent < kSubjectCount, "the opponent is the next subject");
 
 // Win32 window, DirectX 11 device, one lit cube per subject, and a ground plate in an offscreen target.
 class Renderer {

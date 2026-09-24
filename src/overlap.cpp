@@ -22,20 +22,13 @@ AxisBox BoxFromCenter(float x, float y, float z, float half) {
     };
 }
 
-bool BoxesOverlap(const AxisBox& a, const AxisBox& b) {
-    return RangesOverlap(a.min_x, a.max_x, b.min_x, b.max_x) &&
-           RangesOverlap(a.min_y, a.max_y, b.min_y, b.max_y) &&
-           RangesOverlap(a.min_z, a.max_z, b.min_z, b.max_z);
-}
-
 bool Blocked(const Subject& mover, const Subject* subjects, int subject_count, int mover_index) {
-    const AxisBox mover_box = BoxFromCenter(
-        mover.position[0], mover.position[1], mover.position[2], kCubeHalfExtent);
+    const AxisBox mover_box = SubjectBox(mover);
 
     AxisBox walls[kWallCount];
     WallBoxes(walls);
     for (const AxisBox& wall : walls) {
-        if (BoxesOverlap(mover_box, wall)) {
+        if (AxisBoxesOverlap(mover_box, wall)) {
             return true;
         }
     }
@@ -48,9 +41,8 @@ bool Blocked(const Subject& mover, const Subject* subjects, int subject_count, i
         if (other.remaining <= 0) {
             continue;
         }
-        const AxisBox other_box = BoxFromCenter(
-            other.position[0], other.position[1], other.position[2], kCubeHalfExtent);
-        if (BoxesOverlap(mover_box, other_box)) {
+        const AxisBox other_box = SubjectBox(other);
+        if (AxisBoxesOverlap(mover_box, other_box)) {
             return true;
         }
     }
@@ -58,6 +50,16 @@ bool Blocked(const Subject& mover, const Subject* subjects, int subject_count, i
 }
 
 }  // namespace
+
+AxisBox SubjectBox(const Subject& subject) {
+    return BoxFromCenter(subject.position[0], subject.position[1], subject.position[2], kCubeHalfExtent);
+}
+
+bool AxisBoxesOverlap(const AxisBox& a, const AxisBox& b) {
+    return RangesOverlap(a.min_x, a.max_x, b.min_x, b.max_x) &&
+           RangesOverlap(a.min_y, a.max_y, b.min_y, b.max_y) &&
+           RangesOverlap(a.min_z, a.max_z, b.min_z, b.max_z);
+}
 
 void WallBoxes(AxisBox (&walls)[kWallCount]) {
     const float inner = kFloorHalfExtent;

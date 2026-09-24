@@ -367,8 +367,11 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             constants);
     }
 
-    if (scene.attack_mark.visible) {
-        const AxisBox& box = scene.attack_mark.box;
+    for (const AttackMark& mark : scene.attack_marks) {
+        if (!mark.visible) {
+            continue;
+        }
+        const AxisBox& box = mark.box;
         const float size_x = box.max_x - box.min_x;
         const float size_y = box.max_y - box.min_y;
         const float size_z = box.max_z - box.min_z;
@@ -379,12 +382,7 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
                 (box.min_y + box.max_y) * 0.5f,
                 (box.min_z + box.max_z) * 0.5f);
         DirectX::XMStoreFloat4x4(&constants.world, world);
-        constants.albedo = {
-            scene.attack_mark.color[0],
-            scene.attack_mark.color[1],
-            scene.attack_mark.color[2],
-            1.0f,
-        };
+        constants.albedo = {mark.color[0], mark.color[1], mark.color[2], 1.0f};
         DrawLitMesh(
             context_.Get(),
             constant_buffer_.Get(),
