@@ -470,12 +470,11 @@ bool Renderer::CreatePipeline(std::wstring& error) {
 
     // Same winding as the cube's top face. Y is just below the cube so the bottom face does not z-fight.
     constexpr float kFloorY = -0.501f;
-    constexpr float kFloorHalf = 20.0f;
     const Vertex floor_vertices[] = {
-        {{-kFloorHalf, kFloorY, kFloorHalf}, {0.0f, 1.0f, 0.0f}},
-        {{kFloorHalf, kFloorY, kFloorHalf}, {0.0f, 1.0f, 0.0f}},
-        {{kFloorHalf, kFloorY, -kFloorHalf}, {0.0f, 1.0f, 0.0f}},
-        {{-kFloorHalf, kFloorY, -kFloorHalf}, {0.0f, 1.0f, 0.0f}},
+        {{-kFloorHalfExtent, kFloorY, kFloorHalfExtent}, {0.0f, 1.0f, 0.0f}},
+        {{kFloorHalfExtent, kFloorY, kFloorHalfExtent}, {0.0f, 1.0f, 0.0f}},
+        {{kFloorHalfExtent, kFloorY, -kFloorHalfExtent}, {0.0f, 1.0f, 0.0f}},
+        {{-kFloorHalfExtent, kFloorY, -kFloorHalfExtent}, {0.0f, 1.0f, 0.0f}},
     };
     const std::uint16_t floor_indices[] = {0, 1, 2, 0, 2, 3};
     floor_index_count_ = static_cast<UINT>(std::size(floor_indices));
