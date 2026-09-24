@@ -1,4 +1,5 @@
 #include "approach.hpp"
+#include "arena_file.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "overlap.hpp"
@@ -209,7 +210,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         const float previous_z = scene.subjects[kPlayer].position[2];
         WalkCube(
             scene.subjects[kPlayer], basis, frame_seconds, viewport_hovered, scene.walk_with_camera_yaw);
-        ResolveHorizontalOverlap(scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z);
+        ResolveHorizontalOverlap(
+            scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
         const bool attack_pressed = viewport_hovered && !ImGui::GetIO().WantTextInput &&
                                     ImGui::IsKeyPressed(ImGuiKey_Space, false);
         Attack(
@@ -230,7 +232,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             kPlayer,
             frame_seconds,
             &scene.attack_marks[index],
-            yaw_held[index]);
+            yaw_held[index],
+            scene.floor_half);
     }
 
     const auto target_width = static_cast<UINT>(view_size.x);
@@ -346,6 +349,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int show_command) {
     }
 
     SceneState scene;
+    if (LoadArena(scene) == ArenaLoad::Missing) {
+        scene.layout_error.clear();
+    }
     bool done = false;
     while (!done) {
         MSG message;
