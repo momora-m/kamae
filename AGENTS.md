@@ -10,6 +10,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0004-cube-walks-its-facing.md` — 立方体は自分のヨーで歩く。既定
 - `docs/adr/0005-walk-along-camera-yaw.md` — 切り替えるとカメラの水平ヨーで歩く
 - `docs/adr/0006-walk-stops-at-floor-edge.md` — 歩行は床の端で止まる。落ちない
+- `docs/adr/0007-player-and-opponent-one-loop.md` — プレイヤーと相手は同じ並び。三人目は要素
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 
