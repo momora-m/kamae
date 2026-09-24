@@ -4,6 +4,7 @@
 
 #include "imgui.h"
 
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 
@@ -47,8 +48,9 @@ void WalkCube(
     const float distance = kWalkSpeed * frame_seconds;
     const float move_x = (basis.right_x * strafe + basis.forward_x * forward_input) * distance;
     const float move_z = (basis.right_z * strafe + basis.forward_z * forward_input) * distance;
-    scene.cube_position[0] += move_x;
-    scene.cube_position[2] += move_z;
+    constexpr float kWalkLimit = kFloorHalfExtent - kCubeHalfExtent;
+    scene.cube_position[0] = std::clamp(scene.cube_position[0] + move_x, -kWalkLimit, kWalkLimit);
+    scene.cube_position[2] = std::clamp(scene.cube_position[2] + move_z, -kWalkLimit, kWalkLimit);
     if (face_move) {
         scene.cube_rotation_degrees[1] = std::atan2(move_x, move_z) * (180.0f / std::numbers::pi_v<float>);
     }
