@@ -45,6 +45,9 @@ bool Blocked(const Subject& mover, const Subject* subjects, int subject_count, i
             continue;
         }
         const Subject& other = subjects[index];
+        if (other.remaining <= 0) {
+            continue;
+        }
         const AxisBox other_box = BoxFromCenter(
             other.position[0], other.position[1], other.position[2], kCubeHalfExtent);
         if (BoxesOverlap(mover_box, other_box)) {
