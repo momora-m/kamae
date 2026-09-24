@@ -72,13 +72,15 @@ float FrameSeconds() {
     return std::min(seconds, kMaxFrameSeconds);
 }
 
-// Yaw 0 looks toward -Z. This is the only place walking reads the camera azimuth.
-HorizontalBasis BasisFromCameraYaw(float yaw) {
+// Cube yaw 0 faces +Z. Walking reads this yaw, not the camera.
+HorizontalBasis BasisFromCubeYaw(float yaw_radians) {
+    const float s = std::sin(yaw_radians);
+    const float c = std::cos(yaw_radians);
     return HorizontalBasis{
-        -std::sin(yaw),
-        -std::cos(yaw),
-        -std::cos(yaw),
-        std::sin(yaw),
+        s,
+        c,
+        c,
+        -s,
     };
 }
 
@@ -147,7 +149,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::Text("Yaw %.1f deg", scene.camera_yaw * (180.0f / std::numbers::pi_v<float>));
     ImGui::Text("Pitch %.1f deg", scene.camera_pitch * (180.0f / std::numbers::pi_v<float>));
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the cube.");
-    ImGui::TextWrapped("Hover the viewport and press WASD to walk. The cube faces the move.");
+    ImGui::TextWrapped("Hover the viewport and press WASD to walk along the cube's yaw.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -183,7 +185,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         scene.camera_pitch = std::clamp(
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
-    WalkCube(scene, BasisFromCameraYaw(scene.camera_yaw), frame_seconds, ImGui::IsItemHovered());
+    const float cube_yaw = scene.cube_rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    WalkCube(scene, BasisFromCubeYaw(cube_yaw), frame_seconds, ImGui::IsItemHovered());
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);
