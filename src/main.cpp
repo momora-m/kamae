@@ -3,6 +3,7 @@
 #include "attack_mark.hpp"
 #include "overlap.hpp"
 #include "renderer.hpp"
+#include "subject_panel.hpp"
 #include "walk.hpp"
 
 #include "imgui.h"
@@ -116,7 +117,7 @@ void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
     ImGui::DockBuilderSplitNode(lower, ImGuiDir_Down, 0.50f, &render_node, &camera_node);
 
     ImGui::DockBuilderDockWindow("Viewport", viewport_node);
-    ImGui::DockBuilderDockWindow("Player", player_node);
+    ImGui::DockBuilderDockWindow("Subjects", player_node);
     ImGui::DockBuilderDockWindow("Camera", camera_node);
     ImGui::DockBuilderDockWindow("Render", render_node);
     ImGui::DockBuilderFinish(dockspace_id);
@@ -151,12 +152,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
     ImGui::End();
 
-    ImGui::Begin("Player", nullptr, ImGuiWindowFlags_NoCollapse);
-    ImGui::TextUnformatted("World position");
-    ImGui::DragFloat3("Position", scene.subjects[kPlayer].position, 0.01f);
-    ImGui::TextUnformatted("Euler rotation in degrees");
-    ImGui::DragFloat3("Rotation", scene.subjects[kPlayer].rotation_degrees, 0.5f);
-    ImGui::End();
+    bool yaw_held[kSubjectCount]{};
+    ShowSubjectPanel(scene, yaw_held, kSubjectCount);
 
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::SliderFloat(
@@ -231,7 +228,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         kOpponent,
         kPlayer,
         frame_seconds,
-        &scene.attack_marks[kOpponent]);
+        &scene.attack_marks[kOpponent],
+        yaw_held[kOpponent]);
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);

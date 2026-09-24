@@ -22,7 +22,8 @@ void ApproachAndAttack(
     int mover_index,
     int target_index,
     float frame_seconds,
-    AttackMark* mark) {
+    AttackMark* mark,
+    bool keep_yaw) {
     if (subjects == nullptr || mover_index < 0 || target_index < 0 || mover_index >= subject_count ||
         target_index >= subject_count || mover_index == target_index || subjects[mover_index].remaining <= 0 ||
         subjects[target_index].remaining <= 0) {
@@ -38,7 +39,9 @@ void ApproachAndAttack(
     const float dz = target.position[2] - mover.position[2];
     const float length = std::sqrt(dx * dx + dz * dz);
     if (length >= kDirectionEpsilon) {
-        const float yaw_degrees = std::atan2(dx, dz) * (180.0f / std::numbers::pi_v<float>);
+        const float yaw_degrees =
+            keep_yaw ? mover.rotation_degrees[1]
+                     : std::atan2(dx, dz) * (180.0f / std::numbers::pi_v<float>);
         Subject aimed = mover;
         aimed.rotation_degrees[1] = yaw_degrees;
         if (AxisBoxesOverlap(AttackBox(aimed), SubjectBox(target))) {
@@ -52,7 +55,9 @@ void ApproachAndAttack(
             const float distance = std::min(kWalkSpeed * frame_seconds, length);
             mover.position[0] += (dx / length) * distance;
             mover.position[2] += (dz / length) * distance;
-            mover.rotation_degrees[1] = yaw_degrees;
+            if (!keep_yaw) {
+                mover.rotation_degrees[1] = yaw_degrees;
+            }
             ResolveHorizontalOverlap(subjects, subject_count, mover_index, previous_x, previous_z);
         }
     }
