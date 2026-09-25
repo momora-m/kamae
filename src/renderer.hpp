@@ -22,10 +22,13 @@ constexpr float kCameraDistanceMin = 1.5f;
 constexpr float kCameraDistanceMax = 20.0f;
 constexpr float kCubeHalfExtent = 0.5f;
 constexpr float kFloorHalfExtent = 20.0f;
-constexpr int kSubjectCount = 2;
+constexpr float kFloorHalfMin = 4.0f;
+constexpr float kFloorHalfMax = 40.0f;
+constexpr int kSubjectCapacity = 4;
 constexpr int kPlayer = 0;
 
-// One body in the shared list. Index 0 is the player. A third body is another element.
+// One body in the shared list. Index 0 is the player. Further bodies are more elements.
+// subject_count is how many slots are in use. The array length is the maximum.
 // remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
 struct Subject {
     float position[3] = {0.0f, 0.0f, 0.0f};
@@ -37,8 +40,12 @@ struct Subject {
 
 struct SceneState {
     float clear_color[3] = {0.09f, 0.10f, 0.12f};
-    // Player stays at the origin. Opponent is (0, 0, 4), yaw 180, facing the player along -Z.
-    Subject subjects[kSubjectCount] = {
+    // Starts as the player at the origin and one subject at (0, 0, 4), yaw 180, facing -Z.
+    // Unused slots stay past subject_count and are not simulated.
+    int subject_count = 2;
+    float floor_half = kFloorHalfExtent;
+    std::string layout_error;
+    Subject subjects[kSubjectCapacity] = {
         Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}, 3},
         Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}, 3},
     };
@@ -46,10 +53,12 @@ struct SceneState {
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
     bool walk_with_camera_yaw = false;
-    AttackMark attack_mark{};
+    AttackMark attack_marks[kSubjectCapacity]{};
 };
 
-static_assert(kPlayer >= 0 && kPlayer < kSubjectCount, "the player is the first subject");
+static_assert(kPlayer == 0, "the player is the first subject");
+static_assert(kSubjectCapacity == 4, "the list holds the player and three more");
+static_assert(kSubjectCapacity > kPlayer, "the player fits in the list");
 
 // Win32 window, DirectX 11 device, one lit cube per subject, and a ground plate in an offscreen target.
 class Renderer {

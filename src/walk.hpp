@@ -2,6 +2,8 @@
 
 struct Subject;
 
+constexpr float kWalkSpeed = 2.5f;
+
 // Horizontal move axes on the XZ plane. WalkCube does not know where they came from.
 struct HorizontalBasis {
     float forward_x;

@@ -7,12 +7,6 @@
 #include <cmath>
 #include <numbers>
 
-namespace {
-
-constexpr float kWalkSpeed = 2.5f;
-
-}  // namespace
-
 void WalkCube(
     Subject& subject,
     const HorizontalBasis& basis,

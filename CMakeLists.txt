@@ -52,6 +52,14 @@ add_executable(editor WIN32
   src/attack.hpp
   src/attack_mark.cpp
   src/attack_mark.hpp
+  src/approach.cpp
+  src/approach.hpp
+  src/subject_panel.cpp
+  src/subject_panel.hpp
+  src/roster.cpp
+  src/roster.hpp
+  src/arena_file.cpp
+  src/arena_file.hpp
   shaders/lit.hlsl
   ${IMGUI_SOURCES}
 )

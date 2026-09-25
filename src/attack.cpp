@@ -1,10 +1,7 @@
 #include "attack.hpp"
 
 #include "attack_mark.hpp"
-#include "overlap.hpp"
 #include "renderer.hpp"
-
-#include "imgui.h"
 
 #include <algorithm>
 #include <cmath>
@@ -16,26 +13,7 @@ constexpr float kAttackForward = 1.0f;
 constexpr float kAttackLateral = 0.5f;
 constexpr float kAttackInterval = 0.4f;
 
-bool RangesOverlap(float min_a, float max_a, float min_b, float max_b) {
-    return min_a < max_b && max_a > min_b;
-}
-
-bool BoxesOverlap(const AxisBox& a, const AxisBox& b) {
-    return RangesOverlap(a.min_x, a.max_x, b.min_x, b.max_x) &&
-           RangesOverlap(a.min_y, a.max_y, b.min_y, b.max_y) &&
-           RangesOverlap(a.min_z, a.max_z, b.min_z, b.max_z);
-}
-
-AxisBox SubjectBox(const Subject& subject) {
-    return AxisBox{
-        subject.position[0] - kCubeHalfExtent,
-        subject.position[1] - kCubeHalfExtent,
-        subject.position[2] - kCubeHalfExtent,
-        subject.position[0] + kCubeHalfExtent,
-        subject.position[1] + kCubeHalfExtent,
-        subject.position[2] + kCubeHalfExtent,
-    };
-}
+}  // namespace
 
 // Yaw 0 faces +Z. The volume starts at the front face and extends kAttackForward,
 // with lateral half-width kAttackLateral. Off-axis yaw uses the corners' bounds.
@@ -80,14 +58,12 @@ AxisBox AttackBox(const Subject& attacker) {
     };
 }
 
-}  // namespace
-
 void Attack(
     Subject* subjects,
     int subject_count,
     int attacker_index,
     float frame_seconds,
-    bool viewport_hovered,
+    bool attack_pressed,
     AttackMark* mark) {
     if (mark != nullptr) {
         ClearAttackMark(*mark);
@@ -100,10 +76,7 @@ void Attack(
     if (frame_seconds > 0.0f) {
         attacker.attack_cooldown = std::max(0.0f, attacker.attack_cooldown - frame_seconds);
     }
-    if (!viewport_hovered || ImGui::GetIO().WantTextInput) {
-        return;
-    }
-    if (!ImGui::IsKeyPressed(ImGuiKey_Space, false)) {
+    if (attacker.remaining <= 0 || !attack_pressed) {
         return;
     }
     if (attacker.attack_cooldown > 0.0f) {
@@ -123,7 +96,7 @@ void Attack(
         if (other.remaining <= 0) {
             continue;
         }
-        if (!BoxesOverlap(hit, SubjectBox(other))) {
+        if (!AxisBoxesOverlap(hit, SubjectBox(other))) {
             continue;
         }
         other.remaining -= 1;

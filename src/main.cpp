@@ -1,6 +1,10 @@
+#include "approach.hpp"
+#include "arena_file.hpp"
 #include "attack.hpp"
+#include "attack_mark.hpp"
 #include "overlap.hpp"
 #include "renderer.hpp"
+#include "subject_panel.hpp"
 #include "walk.hpp"
 
 #include "imgui.h"
@@ -114,7 +118,7 @@ void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
     ImGui::DockBuilderSplitNode(lower, ImGuiDir_Down, 0.50f, &render_node, &camera_node);
 
     ImGui::DockBuilderDockWindow("Viewport", viewport_node);
-    ImGui::DockBuilderDockWindow("Player", player_node);
+    ImGui::DockBuilderDockWindow("Subjects", player_node);
     ImGui::DockBuilderDockWindow("Camera", camera_node);
     ImGui::DockBuilderDockWindow("Render", render_node);
     ImGui::DockBuilderFinish(dockspace_id);
@@ -149,12 +153,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
     ImGui::End();
 
-    ImGui::Begin("Player", nullptr, ImGuiWindowFlags_NoCollapse);
-    ImGui::TextUnformatted("World position");
-    ImGui::DragFloat3("Position", scene.subjects[kPlayer].position, 0.01f);
-    ImGui::TextUnformatted("Euler rotation in degrees");
-    ImGui::DragFloat3("Rotation", scene.subjects[kPlayer].rotation_degrees, 0.5f);
-    ImGui::End();
+    bool yaw_held[kSubjectCapacity]{};
+    ShowSubjectPanel(scene, yaw_held, kSubjectCapacity);
 
     ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::SliderFloat(
@@ -164,7 +164,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "Hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds.");
+        "Hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds. The opponent walks in and uses the same attack.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -200,18 +200,41 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         scene.camera_pitch = std::clamp(
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
-    const float player_yaw =
-        scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
-    const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
-                                                             : BasisFromCubeYaw(player_yaw);
-    const float previous_x = scene.subjects[kPlayer].position[0];
-    const float previous_z = scene.subjects[kPlayer].position[2];
-    WalkCube(
-        scene.subjects[kPlayer], basis, frame_seconds, ImGui::IsItemHovered(), scene.walk_with_camera_yaw);
-    ResolveHorizontalOverlap(
-        scene.subjects, kSubjectCount, kPlayer, previous_x, previous_z);
-    Attack(
-        scene.subjects, kSubjectCount, kPlayer, frame_seconds, ImGui::IsItemHovered(), &scene.attack_mark);
+    const bool viewport_hovered = ImGui::IsItemHovered();
+    if (scene.subjects[kPlayer].remaining > 0) {
+        const float player_yaw =
+            scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+        const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
+                                                                 : BasisFromCubeYaw(player_yaw);
+        const float previous_x = scene.subjects[kPlayer].position[0];
+        const float previous_z = scene.subjects[kPlayer].position[2];
+        WalkCube(
+            scene.subjects[kPlayer], basis, frame_seconds, viewport_hovered, scene.walk_with_camera_yaw);
+        ResolveHorizontalOverlap(
+            scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
+        const bool attack_pressed = viewport_hovered && !ImGui::GetIO().WantTextInput &&
+                                    ImGui::IsKeyPressed(ImGuiKey_Space, false);
+        Attack(
+            scene.subjects,
+            scene.subject_count,
+            kPlayer,
+            frame_seconds,
+            attack_pressed,
+            &scene.attack_marks[kPlayer]);
+    } else {
+        ClearAttackMark(scene.attack_marks[kPlayer]);
+    }
+    for (int index = kPlayer + 1; index < scene.subject_count; ++index) {
+        ApproachAndAttack(
+            scene.subjects,
+            scene.subject_count,
+            index,
+            kPlayer,
+            frame_seconds,
+            &scene.attack_marks[index],
+            yaw_held[index],
+            scene.floor_half);
+    }
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);
@@ -226,7 +249,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             ImVec2(view_origin.x + view_size.x, view_origin.y + view_size.y));
     }
     const float line_height = ImGui::GetTextLineHeight();
-    for (int index = 0; index < kSubjectCount; ++index) {
+    for (int index = 0; index < scene.subject_count; ++index) {
         char remaining_line[64];
         std::snprintf(
             remaining_line,
@@ -326,6 +349,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int show_command) {
     }
 
     SceneState scene;
+    if (LoadArena(scene) == ArenaLoad::Missing) {
+        scene.layout_error.clear();
+    }
     bool done = false;
     while (!done) {
         MSG message;

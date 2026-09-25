@@ -313,7 +313,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
 
     // Cube half-extent is 0.5 at y = 0, so the plate sits just under the bottom face.
     FrameConstants floor = constants;
-    DirectX::XMStoreFloat4x4(&floor.world, DirectX::XMMatrixIdentity());
+    const float floor_scale = kFloorHalfExtent > 0.0f ? scene.floor_half / kFloorHalfExtent : 1.0f;
+    DirectX::XMStoreFloat4x4(&floor.world, DirectX::XMMatrixScaling(floor_scale, 1.0f, floor_scale));
     floor.albedo = {0.32f, 0.34f, 0.33f, 1.0f};
     DrawLitMesh(
         context_.Get(),
@@ -324,7 +325,7 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
         floor);
 
     AxisBox walls[kWallCount];
-    WallBoxes(walls);
+    WallBoxes(walls, scene.floor_half);
     for (const AxisBox& wall : walls) {
         const float size_x = wall.max_x - wall.min_x;
         const float size_y = wall.max_y - wall.min_y;
@@ -346,7 +347,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             constants);
     }
 
-    for (const Subject& subject : scene.subjects) {
+    for (int index = 0; index < scene.subject_count && index < kSubjectCapacity; ++index) {
+        const Subject& subject = scene.subjects[index];
         if (subject.remaining <= 0) {
             continue;
         }
@@ -367,8 +369,12 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             constants);
     }
 
-    if (scene.attack_mark.visible) {
-        const AxisBox& box = scene.attack_mark.box;
+    for (int index = 0; index < scene.subject_count && index < kSubjectCapacity; ++index) {
+        const AttackMark& mark = scene.attack_marks[index];
+        if (!mark.visible) {
+            continue;
+        }
+        const AxisBox& box = mark.box;
         const float size_x = box.max_x - box.min_x;
         const float size_y = box.max_y - box.min_y;
         const float size_z = box.max_z - box.min_z;
@@ -379,12 +385,7 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
                 (box.min_y + box.max_y) * 0.5f,
                 (box.min_z + box.max_z) * 0.5f);
         DirectX::XMStoreFloat4x4(&constants.world, world);
-        constants.albedo = {
-            scene.attack_mark.color[0],
-            scene.attack_mark.color[1],
-            scene.attack_mark.color[2],
-            1.0f,
-        };
+        constants.albedo = {mark.color[0], mark.color[1], mark.color[2], 1.0f};
         DrawLitMesh(
             context_.Get(),
             constant_buffer_.Get(),
