@@ -22,6 +22,8 @@ constexpr float kCameraDistanceMin = 1.5f;
 constexpr float kCameraDistanceMax = 20.0f;
 constexpr float kCubeHalfExtent = 0.5f;
 constexpr float kFloorHalfExtent = 20.0f;
+constexpr float kFloorHalfMin = 4.0f;
+constexpr float kFloorHalfMax = 40.0f;
 constexpr int kSubjectCapacity = 4;
 constexpr int kPlayer = 0;
 
@@ -41,6 +43,8 @@ struct SceneState {
     // Starts as the player at the origin and one subject at (0, 0, 4), yaw 180, facing -Z.
     // Unused slots stay past subject_count and are not simulated.
     int subject_count = 2;
+    float floor_half = kFloorHalfExtent;
+    std::string layout_error;
     Subject subjects[kSubjectCapacity] = {
         Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}, 3},
         Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}, 3},

@@ -14,4 +14,5 @@ void ApproachAndAttack(
     int target_index,
     float frame_seconds,
     AttackMark* mark,
-    bool keep_yaw);
+    bool keep_yaw,
+    float floor_half);

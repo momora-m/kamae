@@ -23,7 +23,8 @@ void ApproachAndAttack(
     int target_index,
     float frame_seconds,
     AttackMark* mark,
-    bool keep_yaw) {
+    bool keep_yaw,
+    float floor_half) {
     if (subjects == nullptr || mover_index < 0 || target_index < 0 || mover_index >= subject_count ||
         target_index >= subject_count || mover_index == target_index || subjects[mover_index].remaining <= 0 ||
         subjects[target_index].remaining <= 0) {
@@ -58,7 +59,8 @@ void ApproachAndAttack(
             if (!keep_yaw) {
                 mover.rotation_degrees[1] = yaw_degrees;
             }
-            ResolveHorizontalOverlap(subjects, subject_count, mover_index, previous_x, previous_z);
+            ResolveHorizontalOverlap(
+                subjects, subject_count, mover_index, previous_x, previous_z, floor_half);
         }
     }
 
