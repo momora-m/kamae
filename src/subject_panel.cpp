@@ -6,6 +6,22 @@
 
 #include "imgui.h"
 
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+
+namespace {
+
+void CopySceneName(char* dest, int dest_size, const std::string& name) {
+    if (dest == nullptr || dest_size <= 0) {
+        return;
+    }
+    std::snprintf(dest, static_cast<std::size_t>(dest_size), "%s", name.c_str());
+}
+
+}  // namespace
+
 void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
     if (yaw_held != nullptr) {
         for (int index = 0; index < yaw_held_count; ++index) {
@@ -18,7 +34,7 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
         scene.session = SessionMode::Trial;
     }
     if (scene.session != SessionMode::Editing) {
-        ImGui::TextUnformatted("Trial. Layout edits stay hidden.");
+        ImGui::TextUnformatted("Trial. Layout edits and scene changes stay hidden.");
         ImGui::End();
         return;
     }
@@ -71,16 +87,28 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
         kFloorHalfMax,
         "%.2f",
         ImGuiSliderFlags_AlwaysClamp);
-    if (ImGui::Button("Save")) {
-        SaveArena(scene);
+    static char scene_name[kSceneNameMax + 1] = "";
+    ImGui::InputText("Scene name", scene_name, sizeof(scene_name));
+    if (ImGui::Button("Save scene")) {
+        SaveScene(scene, scene_name);
     }
-    ImGui::SameLine();
-    if (ImGui::Button("Load")) {
-        const ArenaLoad loaded = LoadArena(scene);
-        if (loaded == ArenaLoad::Missing) {
-            scene.layout_error = "arena.txt was not found.";
+    std::vector<std::string> names;
+    ListScenes(names);
+    ImGui::TextUnformatted("Scenes");
+    if (names.empty()) {
+        ImGui::TextUnformatted("No saved scenes.");
+    }
+    ImGui::PushID("scene-list");
+    for (int index = 0; index < static_cast<int>(names.size()); ++index) {
+        ImGui::PushID(index);
+        const bool chosen = std::strcmp(scene_name, names[static_cast<std::size_t>(index)].c_str()) == 0;
+        if (ImGui::Selectable(names[static_cast<std::size_t>(index)].c_str(), chosen)) {
+            CopySceneName(scene_name, static_cast<int>(sizeof(scene_name)), names[static_cast<std::size_t>(index)]);
+            LoadScene(scene, names[static_cast<std::size_t>(index)]);
         }
+        ImGui::PopID();
     }
+    ImGui::PopID();
     if (!scene.layout_error.empty()) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.45f, 0.35f, 1.0f));
         ImGui::TextWrapped("%s", scene.layout_error.c_str());

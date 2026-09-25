@@ -1,5 +1,4 @@
 #include "approach.hpp"
-#include "arena_file.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "overlap.hpp"
@@ -355,9 +354,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int show_command) {
     }
 
     SceneState scene;
-    if (LoadArena(scene) == ArenaLoad::Missing) {
-        scene.layout_error.clear();
-    }
     bool done = false;
     while (!done) {
         MSG message;
