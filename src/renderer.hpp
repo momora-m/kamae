@@ -28,9 +28,24 @@ constexpr int kSubjectCapacity = 4;
 constexpr int kPlayer = 0;
 
 // Editing keeps time stopped. A trial starts only from an explicit Start.
+// Stopped keeps the wiped layout until Return to start. It does not resume.
 enum class SessionMode {
     Editing,
     Trial,
+    Stopped,
+};
+
+// Pose remembered at Start. Remaining and cooldown are not part of it.
+struct SubjectPose {
+    float position[3] = {0.0f, 0.0f, 0.0f};
+    float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
+    float color[3] = {0.78f, 0.48f, 0.27f};
+};
+
+struct StartLayout {
+    float floor_half = kFloorHalfExtent;
+    int subject_count = 0;
+    SubjectPose subjects[kSubjectCapacity]{};
 };
 
 // One body in the shared list. Index 0 is the player. Further bodies are more elements.
@@ -53,6 +68,7 @@ struct SceneState {
     int subject_count = 2;
     float floor_half = kFloorHalfExtent;
     SessionMode session = SessionMode::Editing;
+    StartLayout start_layout;
     std::string layout_error;
     Subject subjects[kSubjectCapacity] = {
         Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}, 3},
