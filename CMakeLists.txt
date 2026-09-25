@@ -52,6 +52,8 @@ add_executable(editor WIN32
   src/attack.hpp
   src/attack_mark.cpp
   src/attack_mark.hpp
+  src/approach.cpp
+  src/approach.hpp
   shaders/lit.hlsl
   ${IMGUI_SOURCES}
 )
