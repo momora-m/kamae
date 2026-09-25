@@ -46,8 +46,10 @@ struct Subject {
 
 struct SceneState {
     float clear_color[3] = {0.09f, 0.10f, 0.12f};
-    // Starts as the player at the origin and one subject at (0, 0, 4), yaw 180, facing -Z.
-    // Unused slots stay past subject_count and are not simulated.
+    // Builtin 1v1, separate from saved scenes. The player is at the origin, yaw 0.
+    // One opponent is at (0, 0, 4), yaw 180, facing -Z. The floor half is 20.
+    // At this distance the attack box does not reach. Unused slots stay past
+    // subject_count and are not simulated.
     int subject_count = 2;
     float floor_half = kFloorHalfExtent;
     SessionMode session = SessionMode::Editing;
