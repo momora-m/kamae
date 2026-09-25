@@ -164,7 +164,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "Hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw. The next attack waits 0.4 seconds.");
+        "Hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -210,7 +210,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         scene.subjects[kPlayer], basis, frame_seconds, ImGui::IsItemHovered(), scene.walk_with_camera_yaw);
     ResolveHorizontalOverlap(
         scene.subjects, kSubjectCount, kPlayer, previous_x, previous_z);
-    Attack(scene.subjects, kSubjectCount, kPlayer, frame_seconds, ImGui::IsItemHovered());
+    Attack(
+        scene.subjects, kSubjectCount, kPlayer, frame_seconds, ImGui::IsItemHovered(), &scene.attack_mark);
 
     const auto target_width = static_cast<UINT>(view_size.x);
     const auto target_height = static_cast<UINT>(view_size.y);

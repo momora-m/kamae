@@ -1,5 +1,6 @@
 #include "attack.hpp"
 
+#include "attack_mark.hpp"
 #include "overlap.hpp"
 #include "renderer.hpp"
 
@@ -86,7 +87,11 @@ void Attack(
     int subject_count,
     int attacker_index,
     float frame_seconds,
-    bool viewport_hovered) {
+    bool viewport_hovered,
+    AttackMark* mark) {
+    if (mark != nullptr) {
+        ClearAttackMark(*mark);
+    }
     if (subjects == nullptr || attacker_index < 0 || attacker_index >= subject_count) {
         return;
     }
@@ -107,6 +112,9 @@ void Attack(
     attacker.attack_cooldown = kAttackInterval;
 
     const AxisBox hit = AttackBox(attacker);
+    if (mark != nullptr) {
+        ShowAttackMark(*mark, hit);
+    }
     for (int index = 0; index < subject_count; ++index) {
         if (index == attacker_index) {
             continue;
