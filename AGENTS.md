@@ -24,6 +24,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0018-opponent-state-is-actions.md` — 相手の状態は、その歩きと攻撃する／しないの組み合わせ。最初は近づく、間合いで待つ、撃つ
 - `docs/adr/0019-attack-volume-lifetime.md` — 攻撃の箱は 3 フレームの寿命。出始めと終わりは 0。判定と描画は同じ区間
 - `docs/adr/0020-subject-frame-dt.md` — 試走中、主体ごとにフレームの Δt。当たった主体は次の 4 フレームが 0。箱の寿命とは別
+- `docs/adr/0021-controller-attaches-to-subject.md` — コントローラーは主体に付く。プレイヤーのキーと相手の接近が、同じ歩きと攻撃する／しないを出す
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 

@@ -3,6 +3,7 @@
 - 状態: `accepted`
 - 日付: 2026-09-26
 - 作業: [相手の状態を ADR に残す](https://github.com/momora-m/kamae/issues/53)
+- 追加: その組み合わせを出すのが、主体に付いたコントローラーであることは [0021](0021-controller-attaches-to-subject.md)。状態が歩きと攻撃する／しないであることは、ここが現在の決定である。
 
 ## 文脈
 
