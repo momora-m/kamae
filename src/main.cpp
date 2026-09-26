@@ -188,10 +188,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         }
     }
     if (scene.session == SessionMode::Trial || scene.session == SessionMode::Stopped) {
-        for (int index = 0; index < scene.subject_count; ++index) {
-            TickAttackVolume(
-                scene.attack_marks[index], scene.subjects, scene.subject_count, index);
-        }
+        TickAttackVolumes(scene.volumes, scene.volume_count, scene.subjects, scene.subject_count);
     }
     if (scene.session == SessionMode::Trial) {
         for (int index = 0; index < scene.subject_count; ++index) {
@@ -206,9 +203,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             scene.session = SessionMode::Stopped;
         }
     } else if (scene.session == SessionMode::Editing) {
-        for (int index = 0; index < kSubjectCapacity; ++index) {
-            ClearAttackMark(scene.attack_marks[index]);
-        }
+        ClearAttackVolumes(scene.volumes, scene.volume_count);
     }
 
     const auto target_width = static_cast<UINT>(view_size.x);

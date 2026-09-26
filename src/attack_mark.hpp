@@ -10,16 +10,19 @@ constexpr int kAttackVolumeRecoveryFrames = 0;
 constexpr int kAttackVolumeLifetimeFrames =
     kAttackVolumeStartupFrames + kAttackVolumeActiveFrames + kAttackVolumeRecoveryFrames;
 
-// The hit box for one swing. Attack spawns it. Each later frame shortens remaining_frames.
-// While frames remain, the box stays where it was spawned. hit_mask records subjects
-// already damaged by this volume, so one swing reduces a subject once.
+// The hit box for one swing. Attack spawns it into the trial list. Each later
+// frame shortens remaining_frames. While frames remain, the box stays where it
+// was spawned. hit_mask records subjects already damaged by this volume, so
+// one swing reduces a subject once. attacker_index is who spawned it.
 struct AttackMark {
     bool visible = false;
     int remaining_frames = 0;
     unsigned hit_mask = 0;
+    int attacker_index = -1;
     AxisBox box{};
     float color[3] = {0.93f, 0.82f, 0.28f};
 };
 
 void ClearAttackMark(AttackMark& mark);
-void ShowAttackMark(AttackMark& mark, const AxisBox& box);
+void ShowAttackMark(AttackMark& mark, const AxisBox& box, int attacker_index);
+void ClearAttackVolumes(AttackMark* volumes, int& volume_count);
