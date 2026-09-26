@@ -12,10 +12,16 @@ struct HorizontalBasis {
     float right_z;
 };
 
-// Moves one subject on XZ. Overlap with walls and other subjects is a later step.
+// Strafe and forward on that basis. Not keys. A zero intent does not move.
+struct HorizontalWalk {
+    float strafe;
+    float forward;
+};
+
+// Moves one subject on XZ from the walk intent. Overlap is a later step.
 void WalkCube(
     Subject& subject,
     const HorizontalBasis& basis,
+    const HorizontalWalk& walk,
     float frame_seconds,
-    bool viewport_hovered,
     bool face_move);
