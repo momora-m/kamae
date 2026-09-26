@@ -14,32 +14,6 @@ constexpr float kAttackLateral = 0.5f;
 
 static_assert(kSubjectCapacity <= 32, "the volume hit mask has one bit per subject");
 
-void ApplyVolumeHit(AttackMark& mark, Subject* subjects, int subject_count, int attacker_index) {
-    if (subjects == nullptr || subject_count <= 0) {
-        return;
-    }
-    const int count = subject_count < kSubjectCapacity ? subject_count : kSubjectCapacity;
-    for (int index = 0; index < count; ++index) {
-        if (index == attacker_index) {
-            continue;
-        }
-        Subject& other = subjects[index];
-        if (other.remaining <= 0) {
-            continue;
-        }
-        const unsigned bit = 1u << static_cast<unsigned>(index);
-        if ((mark.hit_mask & bit) != 0u) {
-            continue;
-        }
-        if (!AxisBoxesOverlap(mark.box, SubjectBox(other))) {
-            continue;
-        }
-        other.remaining -= 1;
-        other.hitstop_frames = kHitstopFrames;
-        mark.hit_mask |= bit;
-    }
-}
-
 }  // namespace
 
 static_assert(kAttackReactionIdle < 0.0f, "an idle reaction is not a finished wait");
@@ -89,7 +63,7 @@ AxisBox AttackBox(const Subject& attacker) {
     };
 }
 
-void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count) {
+void TickAttackVolume(AttackMark& mark) {
     if (mark.remaining_frames <= 0) {
         ClearAttackMark(mark);
         return;
@@ -100,17 +74,16 @@ void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count) {
         return;
     }
     mark.visible = true;
-    ApplyVolumeHit(mark, subjects, subject_count, mark.attacker_index);
 }
 
-void TickAttackVolumes(AttackMark* volumes, int& volume_count, Subject* subjects, int subject_count) {
+void TickAttackVolumes(AttackMark* volumes, int& volume_count) {
     if (volumes == nullptr || volume_count <= 0) {
         volume_count = 0;
         return;
     }
     int kept = 0;
     for (int index = 0; index < volume_count; ++index) {
-        TickAttackVolume(volumes[index], subjects, subject_count);
+        TickAttackVolume(volumes[index]);
         if (volumes[index].remaining_frames <= 0) {
             continue;
         }
@@ -164,5 +137,4 @@ void Attack(
     AttackMark& volume = volumes[volume_count];
     ShowAttackMark(volume, AttackBox(attacker), attacker_index);
     volume_count += 1;
-    ApplyVolumeHit(volume, subjects, subject_count, attacker_index);
 }

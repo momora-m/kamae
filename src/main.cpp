@@ -188,7 +188,8 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         }
     }
     if (scene.session == SessionMode::Trial || scene.session == SessionMode::Stopped) {
-        TickAttackVolumes(scene.volumes, scene.volume_count, scene.subjects, scene.subject_count);
+        TickAttackVolumes(scene.volumes, scene.volume_count);
+        ApplyVolumeHits(scene);
     }
     if (scene.session == SessionMode::Trial) {
         for (int index = 0; index < scene.subject_count; ++index) {
@@ -199,6 +200,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 viewport_hovered,
                 yaw_held[index]);
         }
+        ApplyVolumeHits(scene);
         if (TrialShouldStop(scene)) {
             scene.session = SessionMode::Stopped;
         }
