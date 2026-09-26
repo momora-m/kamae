@@ -3,6 +3,7 @@
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "controller.hpp"
+#include "hit.hpp"
 #include "overlap.hpp"
 #include "renderer.hpp"
 #include "walk.hpp"
@@ -117,6 +118,26 @@ bool TrialShouldStop(const SceneState& scene) {
         }
     }
     return true;
+}
+
+void ApplyVolumeHits(SceneState& scene) {
+    Hit hits[kSubjectCapacity]{};
+    const int volume_count = scene.volume_count < kVolumeCapacity ? scene.volume_count : kVolumeCapacity;
+    for (int volume_index = 0; volume_index < volume_count; ++volume_index) {
+        const int hit_count = CollectVolumeHits(
+            scene.volumes[volume_index],
+            scene.subjects,
+            scene.subject_count,
+            hits,
+            kSubjectCapacity);
+        for (int hit_index = 0; hit_index < hit_count; ++hit_index) {
+            const int target_index = hits[hit_index].target_index;
+            if (target_index < 0 || target_index >= scene.subject_count) {
+                continue;
+            }
+            ApplyHit(scene.subjects[target_index]);
+        }
+    }
 }
 
 void ApplySubjectActions(

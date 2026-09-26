@@ -26,6 +26,10 @@ bool TrialShouldStop(const SceneState& scene);
 // Walk and attack from emitted actions. Overlap is resolved after the step.
 // walk_seconds may be shorter than frame_seconds so an approach does not
 // step past the target. Walk and Attack do not treat index 0 as special.
+// Collect overlaps from the trial volumes and apply remaining and hitstop.
+// Volumes do not change remaining themselves.
+void ApplyVolumeHits(SceneState& scene);
+
 void ApplySubjectActions(
     SceneState& scene,
     int subject_index,

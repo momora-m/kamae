@@ -54,6 +54,8 @@ add_executable(editor WIN32
   src/overlap.hpp
   src/attack.cpp
   src/attack.hpp
+  src/hit.cpp
+  src/hit.hpp
   src/attack_mark.cpp
   src/attack_mark.hpp
   src/approach.cpp
