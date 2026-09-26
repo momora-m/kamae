@@ -3,6 +3,7 @@
 - 状態: `accepted`
 - 日付: 2026-09-26
 - 作業: [箱を試走が持つことを ADR に残す](https://github.com/momora-m/kamae/issues/67)
+- 追加: その並びの重なりを当たりとして試走が適用することは [0023](0023-hit-is-session-result.md)。箱が試走の並びにあることは、ここが現在の決定である。
 
 ## 文脈
 
