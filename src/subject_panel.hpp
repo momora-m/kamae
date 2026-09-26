@@ -15,6 +15,9 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count);
 // Main menu bar. Scene holds the name field, save, the saved-scene list, and
 // reset to the builtin 1v1. Those call SaveScene, ListScenes, LoadScene, and
 // ApplyBuiltinLayout. The menu is disabled while the session is not editing,
-// so a trial cannot switch scenes. Submit this before the dock host. The bar
-// reserves the top of the main viewport work area the host already uses.
-void ShowSceneMenu(SceneState& scene);
+// so a trial cannot switch scenes. Window holds Reset layout and stays
+// available during a trial. Choosing it sets *reset_layout. The caller rebuilds
+// the dock on a later frame and does not delete editor_layout.ini.
+// reset_layout may be null. Submit this before the dock host. The bar reserves
+// the top of the main viewport work area the host already uses.
+void ShowSceneMenu(SceneState& scene, bool* reset_layout);
