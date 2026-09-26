@@ -177,6 +177,7 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         subject.attack_cooldown = 0.0f;
         subject.attack_buffered = false;
         subject.attack_reaction = kAttackReactionIdle;
+        subject.hitstop_frames = 0;
         ClearAttackMark(scene.attack_marks[index]);
     }
     for (int index = parsed.subject_count; index < kSubjectCapacity; ++index) {
@@ -184,6 +185,7 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         scene.subjects[index].attack_cooldown = 0.0f;
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
+        scene.subjects[index].hitstop_frames = 0;
         ClearAttackMark(scene.attack_marks[index]);
     }
     scene.layout_error.clear();

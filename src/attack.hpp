@@ -13,6 +13,9 @@ constexpr float kAttackBufferWindow = 0.15f;
 constexpr float kOpponentReactionDelay = 0.5f;
 // Below zero: the opponent is not standing in range, so the next entry waits again.
 constexpr float kAttackReactionIdle = -1.0f;
+// After a hit, the next this many trial frames pass 0 seconds into WalkCube and Attack.
+// Not a global pause, and not the attack volume lifetime.
+constexpr int kHitstopFrames = 4;
 // A leftover under a tenth of a millisecond is zero. A 0.1 second frame must not
 // stretch 0.4, 0.5, or 0.8 by another frame.
 constexpr float kAttackTimerEpsilon = 0.0001f;

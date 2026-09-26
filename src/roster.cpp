@@ -53,6 +53,7 @@ void ApplyBuiltinLayout(SceneState& scene) {
         scene.subjects[index].attack_cooldown = 0.0f;
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
+        scene.subjects[index].hitstop_frames = 0;
         ClearAttackMark(scene.attack_marks[index]);
     }
     scene.layout_error.clear();

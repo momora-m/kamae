@@ -169,7 +169,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for 3 frames. Startup and recovery are 0 frames, so the box hits on the swing and the next two frames. One swing hits a subject once. The next attack waits 0.4 seconds. A Space press in the last 0.15 seconds is kept and fires once when that wait ends. Earlier presses are dropped. The opponent waits 0.5 seconds after it steps into range, then attacks every 0.8 seconds. Nothing walks or attacks until Start.");
+        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for 3 frames. Startup and recovery are 0 frames, so the box hits on the swing and the next two frames. One swing hits a subject once. The next attack waits 0.4 seconds. A Space press in the last 0.15 seconds is kept and fires once when that wait ends. Earlier presses are dropped. The opponent waits 0.5 seconds after it steps into range, then attacks every 0.8 seconds. Nothing walks or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -206,6 +206,12 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
     const bool viewport_hovered = ImGui::IsItemHovered();
+    float subject_seconds[kSubjectCapacity]{};
+    if (scene.session == SessionMode::Trial) {
+        for (int index = 0; index < scene.subject_count; ++index) {
+            subject_seconds[index] = TakeSubjectFrameSeconds(scene.subjects[index], frame_seconds);
+        }
+    }
     if (scene.session == SessionMode::Trial || scene.session == SessionMode::Stopped) {
         for (int index = 0; index < scene.subject_count; ++index) {
             TickAttackVolume(
@@ -222,14 +228,18 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             const float previous_x = scene.subjects[kPlayer].position[0];
             const float previous_z = scene.subjects[kPlayer].position[2];
             WalkCube(
-                scene.subjects[kPlayer], basis, actions.walk, frame_seconds, scene.walk_with_camera_yaw);
+                scene.subjects[kPlayer],
+                basis,
+                actions.walk,
+                subject_seconds[kPlayer],
+                scene.walk_with_camera_yaw);
             ResolveHorizontalOverlap(
                 scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
             Attack(
                 scene.subjects,
                 scene.subject_count,
                 kPlayer,
-                frame_seconds,
+                subject_seconds[kPlayer],
                 actions.attack,
                 &scene.attack_marks[kPlayer],
                 kPlayerAttackInterval,
@@ -241,7 +251,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 scene.subject_count,
                 index,
                 kPlayer,
-                frame_seconds,
+                subject_seconds[index],
                 &scene.attack_marks[index],
                 yaw_held[index],
                 scene.floor_half);
