@@ -14,6 +14,15 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
     }
 
     ImGui::Begin("Subjects", nullptr, ImGuiWindowFlags_NoCollapse);
+    if (scene.session == SessionMode::Editing && ImGui::Button("Start")) {
+        scene.session = SessionMode::Trial;
+    }
+    if (scene.session != SessionMode::Editing) {
+        ImGui::TextUnformatted("Trial. Layout edits stay hidden.");
+        ImGui::End();
+        return;
+    }
+    ImGui::TextUnformatted("Editing. Time is stopped until Start.");
     ImGui::TextUnformatted("The first subject is the player. Roles stay on the list.");
     const bool can_add = CanAddSubject(scene);
     if (!can_add) {

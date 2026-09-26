@@ -27,6 +27,12 @@ constexpr float kFloorHalfMax = 40.0f;
 constexpr int kSubjectCapacity = 4;
 constexpr int kPlayer = 0;
 
+// Editing keeps time stopped. A trial starts only from an explicit Start.
+enum class SessionMode {
+    Editing,
+    Trial,
+};
+
 // One body in the shared list. Index 0 is the player. Further bodies are more elements.
 // subject_count is how many slots are in use. The array length is the maximum.
 // remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
@@ -44,6 +50,7 @@ struct SceneState {
     // Unused slots stay past subject_count and are not simulated.
     int subject_count = 2;
     float floor_half = kFloorHalfExtent;
+    SessionMode session = SessionMode::Editing;
     std::string layout_error;
     Subject subjects[kSubjectCapacity] = {
         Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}, 3},

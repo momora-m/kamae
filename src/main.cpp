@@ -164,7 +164,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "Hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds. The opponent walks in and uses the same attack.");
+        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds. The opponent walks in and uses the same attack. Nothing walks or attacks until Start.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -201,39 +201,45 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
     const bool viewport_hovered = ImGui::IsItemHovered();
-    if (scene.subjects[kPlayer].remaining > 0) {
-        const float player_yaw =
-            scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
-        const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
-                                                                 : BasisFromCubeYaw(player_yaw);
-        const float previous_x = scene.subjects[kPlayer].position[0];
-        const float previous_z = scene.subjects[kPlayer].position[2];
-        WalkCube(
-            scene.subjects[kPlayer], basis, frame_seconds, viewport_hovered, scene.walk_with_camera_yaw);
-        ResolveHorizontalOverlap(
-            scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
-        const bool attack_pressed = viewport_hovered && !ImGui::GetIO().WantTextInput &&
-                                    ImGui::IsKeyPressed(ImGuiKey_Space, false);
-        Attack(
-            scene.subjects,
-            scene.subject_count,
-            kPlayer,
-            frame_seconds,
-            attack_pressed,
-            &scene.attack_marks[kPlayer]);
+    if (scene.session == SessionMode::Trial) {
+        if (scene.subjects[kPlayer].remaining > 0) {
+            const float player_yaw =
+                scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+            const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
+                                                                     : BasisFromCubeYaw(player_yaw);
+            const float previous_x = scene.subjects[kPlayer].position[0];
+            const float previous_z = scene.subjects[kPlayer].position[2];
+            WalkCube(
+                scene.subjects[kPlayer], basis, frame_seconds, viewport_hovered, scene.walk_with_camera_yaw);
+            ResolveHorizontalOverlap(
+                scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
+            const bool attack_pressed = viewport_hovered && !ImGui::GetIO().WantTextInput &&
+                                        ImGui::IsKeyPressed(ImGuiKey_Space, false);
+            Attack(
+                scene.subjects,
+                scene.subject_count,
+                kPlayer,
+                frame_seconds,
+                attack_pressed,
+                &scene.attack_marks[kPlayer]);
+        } else {
+            ClearAttackMark(scene.attack_marks[kPlayer]);
+        }
+        for (int index = kPlayer + 1; index < scene.subject_count; ++index) {
+            ApproachAndAttack(
+                scene.subjects,
+                scene.subject_count,
+                index,
+                kPlayer,
+                frame_seconds,
+                &scene.attack_marks[index],
+                yaw_held[index],
+                scene.floor_half);
+        }
     } else {
-        ClearAttackMark(scene.attack_marks[kPlayer]);
-    }
-    for (int index = kPlayer + 1; index < scene.subject_count; ++index) {
-        ApproachAndAttack(
-            scene.subjects,
-            scene.subject_count,
-            index,
-            kPlayer,
-            frame_seconds,
-            &scene.attack_marks[index],
-            yaw_held[index],
-            scene.floor_half);
+        for (int index = 0; index < kSubjectCapacity; ++index) {
+            ClearAttackMark(scene.attack_marks[index]);
+        }
     }
 
     const auto target_width = static_cast<UINT>(view_size.x);
