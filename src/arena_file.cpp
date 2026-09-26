@@ -2,6 +2,7 @@
 
 #include "attack.hpp"
 #include "attack_mark.hpp"
+#include "controller.hpp"
 #include "renderer.hpp"
 
 #include <algorithm>
@@ -189,6 +190,7 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         ClearAttackMark(scene.attack_marks[index]);
     }
     scene.layout_error.clear();
+    AttachControllers(scene);
 }
 
 bool WriteArena(const std::filesystem::path& path, const SceneState& scene) {

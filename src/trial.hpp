@@ -1,5 +1,8 @@
 #pragma once
 
+#include "actions.hpp"
+#include "walk.hpp"
+
 struct SceneState;
 struct Subject;
 
@@ -19,3 +22,17 @@ void RestoreStartLayout(SceneState& scene);
 // True when the player has no remaining, or every opponent in use has none.
 // Zero opponents do not end the trial by this check.
 bool TrialShouldStop(const SceneState& scene);
+
+// Walk and attack from emitted actions. Overlap is resolved after the step.
+// walk_seconds may be shorter than frame_seconds so an approach does not
+// step past the target. Walk and Attack do not treat index 0 as special.
+void ApplySubjectActions(
+    SceneState& scene,
+    int subject_index,
+    const SubjectActions& actions,
+    const HorizontalBasis& basis,
+    bool face_move,
+    float walk_seconds,
+    float frame_seconds,
+    float attack_interval,
+    bool buffer_early_press);

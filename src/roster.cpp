@@ -2,6 +2,7 @@
 
 #include "attack.hpp"
 #include "attack_mark.hpp"
+#include "controller.hpp"
 #include "renderer.hpp"
 
 namespace {
@@ -38,6 +39,7 @@ void AddSubject(SceneState& scene) {
     };
     ClearAttackMark(scene.attack_marks[scene.subject_count]);
     scene.subject_count += 1;
+    AttachControllers(scene);
 }
 
 void ApplyBuiltinLayout(SceneState& scene) {
@@ -57,6 +59,7 @@ void ApplyBuiltinLayout(SceneState& scene) {
         ClearAttackMark(scene.attack_marks[index]);
     }
     scene.layout_error.clear();
+    AttachControllers(scene);
 }
 
 void RemoveLastSubject(SceneState& scene) {
@@ -66,4 +69,5 @@ void RemoveLastSubject(SceneState& scene) {
     scene.subject_count -= 1;
     ClearAttackMark(scene.attack_marks[scene.subject_count]);
     scene.subjects[scene.subject_count].remaining = 0;
+    AttachControllers(scene);
 }

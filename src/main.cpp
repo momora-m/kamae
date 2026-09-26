@@ -1,12 +1,9 @@
-#include "actions.hpp"
-#include "approach.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
-#include "overlap.hpp"
+#include "controller.hpp"
 #include "renderer.hpp"
 #include "subject_panel.hpp"
 #include "trial.hpp"
-#include "walk.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
@@ -78,28 +75,6 @@ float FrameSeconds() {
         return 0.0f;
     }
     return std::min(seconds, kMaxFrameSeconds);
-}
-
-// Camera yaw 0 looks toward -Z. Pitch is ignored so the move stays on the ground.
-HorizontalBasis BasisFromCameraYaw(float yaw) {
-    return HorizontalBasis{
-        -std::sin(yaw),
-        -std::cos(yaw),
-        -std::cos(yaw),
-        std::sin(yaw),
-    };
-}
-
-// Cube yaw 0 faces +Z. Walking reads this yaw, not the camera.
-HorizontalBasis BasisFromCubeYaw(float yaw_radians) {
-    const float s = std::sin(yaw_radians);
-    const float c = std::cos(yaw_radians);
-    return HorizontalBasis{
-        s,
-        c,
-        c,
-        -s,
-    };
 }
 
 void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
@@ -227,42 +202,13 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         }
     }
     if (scene.session == SessionMode::Trial) {
-        if (scene.subjects[kPlayer].remaining > 0) {
-            const float player_yaw =
-                scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
-            const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
-                                                                     : BasisFromCubeYaw(player_yaw);
-            const PlayerActions actions = PlayerActionsFromKeys(viewport_hovered);
-            const float previous_x = scene.subjects[kPlayer].position[0];
-            const float previous_z = scene.subjects[kPlayer].position[2];
-            WalkCube(
-                scene.subjects[kPlayer],
-                basis,
-                actions.walk,
-                subject_seconds[kPlayer],
-                scene.walk_with_camera_yaw);
-            ResolveHorizontalOverlap(
-                scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
-            Attack(
-                scene.subjects,
-                scene.subject_count,
-                kPlayer,
-                subject_seconds[kPlayer],
-                actions.attack,
-                &scene.attack_marks[kPlayer],
-                kPlayerAttackInterval,
-                true);
-        }
-        for (int index = kPlayer + 1; index < scene.subject_count; ++index) {
-            ApproachAndAttack(
-                scene.subjects,
-                scene.subject_count,
-                index,
-                kPlayer,
+        for (int index = 0; index < scene.subject_count; ++index) {
+            StepController(
+                scene,
+                scene.controllers[index],
                 subject_seconds[index],
-                &scene.attack_marks[index],
-                yaw_held[index],
-                scene.floor_half);
+                viewport_hovered,
+                yaw_held[index]);
         }
         if (TrialShouldStop(scene)) {
             scene.session = SessionMode::Stopped;

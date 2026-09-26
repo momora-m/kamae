@@ -11,17 +11,6 @@ namespace {
 
 constexpr float kDirectionEpsilon = 0.001f;
 
-HorizontalBasis BasisToward(float dx, float dz, float length) {
-    const float forward_x = dx / length;
-    const float forward_z = dz / length;
-    return HorizontalBasis{
-        forward_x,
-        forward_z,
-        forward_z,
-        -forward_x,
-    };
-}
-
 }  // namespace
 
 OpponentCommand CommandForOpponentState(OpponentState state) {
@@ -34,19 +23,28 @@ OpponentCommand CommandForOpponentState(OpponentState state) {
     return OpponentCommand{OpponentState::Approach, HorizontalWalk{0.0f, 1.0f}, false};
 }
 
-void ApproachAndAttack(
+HorizontalBasis BasisTowardTarget(float dx, float dz, float length) {
+    const float forward_x = dx / length;
+    const float forward_z = dz / length;
+    return HorizontalBasis{
+        forward_x,
+        forward_z,
+        forward_z,
+        -forward_x,
+    };
+}
+
+SubjectActions OpponentActions(
     Subject* subjects,
     int subject_count,
     int mover_index,
     int target_index,
     float frame_seconds,
-    AttackMark* mark,
-    bool keep_yaw,
-    float floor_half) {
+    bool keep_yaw) {
     if (subjects == nullptr || mover_index < 0 || target_index < 0 || mover_index >= subject_count ||
         target_index >= subject_count || mover_index == target_index || subjects[mover_index].remaining <= 0 ||
         subjects[target_index].remaining <= 0) {
-        return;
+        return SubjectActions{HorizontalWalk{0.0f, 0.0f}, false};
     }
 
     Subject& mover = subjects[mover_index];
@@ -76,23 +74,5 @@ void ApproachAndAttack(
     }
 
     const OpponentCommand command = CommandForOpponentState(state);
-    if (state == OpponentState::Approach && length >= kDirectionEpsilon && frame_seconds > 0.0f) {
-        const float previous_x = mover.position[0];
-        const float previous_z = mover.position[2];
-        const float step = kWalkSpeed * frame_seconds;
-        const float walk_seconds = step > length ? length / kWalkSpeed : frame_seconds;
-        WalkCube(mover, BasisToward(dx, dz, length), command.walk, walk_seconds, !keep_yaw);
-        ResolveHorizontalOverlap(
-            subjects, subject_count, mover_index, previous_x, previous_z, floor_half);
-    }
-
-    Attack(
-        subjects,
-        subject_count,
-        mover_index,
-        frame_seconds,
-        command.attack,
-        mark,
-        kOpponentAttackInterval,
-        false);
+    return SubjectActions{command.walk, command.attack};
 }

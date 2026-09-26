@@ -14,6 +14,7 @@
 #include "imgui.h"
 
 #include "attack_mark.hpp"
+#include "controller.hpp"
 
 #include <string>
 
@@ -86,6 +87,12 @@ struct SceneState {
     float camera_pitch = 0.40f;
     bool walk_with_camera_yaw = false;
     AttackMark attack_marks[kSubjectCapacity]{};
+    Controller controllers[kSubjectCapacity] = {
+        Controller{ControllerKind::PlayerKeys, 0, 0},
+        Controller{ControllerKind::OpponentApproach, 1, 0},
+        Controller{ControllerKind::OpponentApproach, 2, 0},
+        Controller{ControllerKind::OpponentApproach, 3, 0},
+    };
 };
 
 static_assert(kPlayer == 0, "the player is the first subject");
