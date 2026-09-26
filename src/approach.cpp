@@ -47,7 +47,20 @@ void ApproachAndAttack(
         aimed.rotation_degrees[1] = yaw_degrees;
         if (AxisBoxesOverlap(AttackBox(aimed), SubjectBox(target))) {
             mover.rotation_degrees[1] = yaw_degrees;
-            Attack(subjects, subject_count, mover_index, frame_seconds, true, mark);
+            if (mover.attack_reaction < 0.0f) {
+                mover.attack_reaction = kOpponentReactionDelay;
+            }
+            mover.attack_reaction = AdvanceAttackTimer(mover.attack_reaction, frame_seconds);
+            const bool attack_ready = mover.attack_reaction <= 0.0f;
+            Attack(
+                subjects,
+                subject_count,
+                mover_index,
+                frame_seconds,
+                attack_ready,
+                mark,
+                kOpponentAttackInterval,
+                false);
             return;
         }
         if (frame_seconds > 0.0f) {
@@ -64,5 +77,7 @@ void ApproachAndAttack(
         }
     }
 
-    Attack(subjects, subject_count, mover_index, frame_seconds, false, mark);
+    mover.attack_reaction = kAttackReactionIdle;
+    Attack(
+        subjects, subject_count, mover_index, frame_seconds, false, mark, kOpponentAttackInterval, false);
 }
