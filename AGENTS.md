@@ -29,6 +29,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0022-session-owns-volumes.md` — ヒットボックスはプレイセッションが持つ配列で管理する
 - `docs/adr/0023-hit-is-session-result.md` — ヒットはプレイセッションが適用する結果である
 - `docs/adr/0024-trial-stop-is-a-result.md` — 停止理由はプレイセッションが返す結果である
+- `docs/adr/0025-opponent-retreats-after-swing.md` — 相手は撃ったあと、間合いの外まで下がる
 - `docs/adr/0026-action-picks-a-move.md` — 入力は、どの技を出すかになる
 - `docs/adr/0027-second-move-reaches-farther.md` — 二つ目の技は、届く距離が長く、次までも長い
 - `docs/adr/0028-restart-trial-from-start.md` — 停止中に、同じ開始状態からもう一度プレイを始める
