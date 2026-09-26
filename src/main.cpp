@@ -4,6 +4,7 @@
 #include "overlap.hpp"
 #include "renderer.hpp"
 #include "subject_panel.hpp"
+#include "trial.hpp"
 #include "walk.hpp"
 
 #include "imgui.h"
@@ -234,6 +235,9 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 &scene.attack_marks[index],
                 yaw_held[index],
                 scene.floor_half);
+        }
+        if (TrialShouldStop(scene)) {
+            scene.session = SessionMode::Stopped;
         }
     } else {
         for (int index = 0; index < kSubjectCapacity; ++index) {

@@ -60,6 +60,8 @@ add_executable(editor WIN32
   src/roster.hpp
   src/arena_file.cpp
   src/arena_file.hpp
+  src/trial.cpp
+  src/trial.hpp
   shaders/lit.hlsl
   ${IMGUI_SOURCES}
 )

@@ -3,6 +3,7 @@
 #include "arena_file.hpp"
 #include "renderer.hpp"
 #include "roster.hpp"
+#include "trial.hpp"
 
 #include "imgui.h"
 
@@ -31,7 +32,15 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
 
     ImGui::Begin("Subjects", nullptr, ImGuiWindowFlags_NoCollapse);
     if (scene.session == SessionMode::Editing && ImGui::Button("Start")) {
-        scene.session = SessionMode::Trial;
+        BeginTrial(scene);
+    }
+    if (scene.session == SessionMode::Stopped) {
+        ImGui::TextUnformatted("Trial stopped. The layout stays until you return.");
+        if (ImGui::Button("Return to start")) {
+            RestoreStartLayout(scene);
+        }
+        ImGui::End();
+        return;
     }
     if (scene.session != SessionMode::Editing) {
         ImGui::TextUnformatted("Trial. Layout edits and scene changes stay hidden.");
