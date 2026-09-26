@@ -2,35 +2,21 @@
 
 #include "renderer.hpp"
 
-#include "imgui.h"
-
 #include <cmath>
 #include <numbers>
 
 void WalkCube(
     Subject& subject,
     const HorizontalBasis& basis,
+    const HorizontalWalk& walk,
     float frame_seconds,
-    bool viewport_hovered,
     bool face_move) {
-    if (!viewport_hovered || ImGui::GetIO().WantTextInput || frame_seconds <= 0.0f) {
+    if (frame_seconds <= 0.0f) {
         return;
     }
 
-    float strafe = 0.0f;
-    float forward_input = 0.0f;
-    if (ImGui::IsKeyDown(ImGuiKey_D)) {
-        strafe += 1.0f;
-    }
-    if (ImGui::IsKeyDown(ImGuiKey_A)) {
-        strafe -= 1.0f;
-    }
-    if (ImGui::IsKeyDown(ImGuiKey_W)) {
-        forward_input += 1.0f;
-    }
-    if (ImGui::IsKeyDown(ImGuiKey_S)) {
-        forward_input -= 1.0f;
-    }
+    float strafe = walk.strafe;
+    float forward_input = walk.forward;
     const float length = std::sqrt(strafe * strafe + forward_input * forward_input);
     if (length < 0.001f) {
         return;

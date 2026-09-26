@@ -1,3 +1,4 @@
+#include "actions.hpp"
 #include "approach.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
@@ -219,20 +220,19 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
             const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
                                                                      : BasisFromCubeYaw(player_yaw);
+            const PlayerActions actions = PlayerActionsFromKeys(viewport_hovered);
             const float previous_x = scene.subjects[kPlayer].position[0];
             const float previous_z = scene.subjects[kPlayer].position[2];
             WalkCube(
-                scene.subjects[kPlayer], basis, frame_seconds, viewport_hovered, scene.walk_with_camera_yaw);
+                scene.subjects[kPlayer], basis, actions.walk, frame_seconds, scene.walk_with_camera_yaw);
             ResolveHorizontalOverlap(
                 scene.subjects, scene.subject_count, kPlayer, previous_x, previous_z, scene.floor_half);
-            const bool attack_pressed = viewport_hovered && !ImGui::GetIO().WantTextInput &&
-                                        ImGui::IsKeyPressed(ImGuiKey_Space, false);
             Attack(
                 scene.subjects,
                 scene.subject_count,
                 kPlayer,
                 frame_seconds,
-                attack_pressed,
+                actions.attack,
                 &scene.attack_marks[kPlayer],
                 kPlayerAttackInterval,
                 true);
