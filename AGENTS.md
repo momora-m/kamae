@@ -25,6 +25,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0019-attack-volume-lifetime.md` — 攻撃の箱は 3 フレームの寿命。出始めと終わりは 0。判定と描画は同じ区間
 - `docs/adr/0020-subject-frame-dt.md` — 試走中、主体ごとにフレームの Δt。当たった主体は次の 4 フレームが 0。箱の寿命とは別
 - `docs/adr/0021-controller-attaches-to-subject.md` — コントローラーは主体に付く。プレイヤーのキーと相手の接近が、同じ歩きと攻撃する／しないを出す
+- `docs/adr/0022-session-owns-volumes.md` — 攻撃の箱は試走が持つ並びへ出る。寿命は 0019 のまま
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 
