@@ -11,9 +11,12 @@ namespace {
 
 constexpr float kAttackForward = 1.0f;
 constexpr float kAttackLateral = 0.5f;
-constexpr float kAttackInterval = 0.4f;
 
 }  // namespace
+
+static_assert(kAttackReactionIdle < 0.0f, "an idle reaction is not a finished wait");
+static_assert(
+    Subject{}.attack_reaction == kAttackReactionIdle, "a new subject has not started the in-range wait");
 
 // Yaw 0 faces +Z. The volume starts at the front face and extends kAttackForward,
 // with lateral half-width kAttackLateral. Off-axis yaw uses the corners' bounds.
@@ -64,7 +67,9 @@ void Attack(
     int attacker_index,
     float frame_seconds,
     bool attack_pressed,
-    AttackMark* mark) {
+    AttackMark* mark,
+    float attack_interval,
+    bool buffer_early_press) {
     if (mark != nullptr) {
         ClearAttackMark(*mark);
     }
@@ -73,16 +78,22 @@ void Attack(
     }
 
     Subject& attacker = subjects[attacker_index];
-    if (frame_seconds > 0.0f) {
-        attacker.attack_cooldown = std::max(0.0f, attacker.attack_cooldown - frame_seconds);
-    }
-    if (attacker.remaining <= 0 || !attack_pressed) {
+    attacker.attack_cooldown = AdvanceAttackTimer(attacker.attack_cooldown, frame_seconds);
+    if (attacker.remaining <= 0) {
+        attacker.attack_buffered = false;
         return;
     }
-    if (attacker.attack_cooldown > 0.0f) {
+    // Judged after this frame's tick. A press earlier than the window is not stored.
+    if (buffer_early_press && attack_pressed && attacker.attack_cooldown > 0.0f &&
+        attacker.attack_cooldown <= kAttackBufferWindow) {
+        attacker.attack_buffered = true;
+    }
+    const bool buffered = buffer_early_press && attacker.attack_buffered;
+    if (attacker.attack_cooldown > 0.0f || (!attack_pressed && !buffered)) {
         return;
     }
-    attacker.attack_cooldown = kAttackInterval;
+    attacker.attack_buffered = false;
+    attacker.attack_cooldown = attack_interval;
 
     const AxisBox hit = AttackBox(attacker);
     if (mark != nullptr) {

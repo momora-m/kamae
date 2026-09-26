@@ -51,12 +51,16 @@ struct StartLayout {
 // One body in the shared list. Index 0 is the player. Further bodies are more elements.
 // subject_count is how many slots are in use. The array length is the maximum.
 // remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
+// attack_buffered is the player's Space in the last 0.15 seconds of cooldown.
+// attack_reaction below zero means this opponent is not in the in-range wait.
 struct Subject {
     float position[3] = {0.0f, 0.0f, 0.0f};
     float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
     float color[3] = {0.78f, 0.48f, 0.27f};
     int remaining = 3;
     float attack_cooldown = 0.0f;
+    bool attack_buffered = false;
+    float attack_reaction = -1.0f;
 };
 
 struct SceneState {

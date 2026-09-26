@@ -1,5 +1,6 @@
 #include "trial.hpp"
 
+#include "attack.hpp"
 #include "attack_mark.hpp"
 #include "renderer.hpp"
 
@@ -39,12 +40,16 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.color[2] = pose.color[2];
     subject.remaining = 3;
     subject.attack_cooldown = 0.0f;
+    subject.attack_buffered = false;
+    subject.attack_reaction = kAttackReactionIdle;
 }
 
 void ClearUnused(SceneState& scene, int count) {
     for (int index = count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
         scene.subjects[index].attack_cooldown = 0.0f;
+        scene.subjects[index].attack_buffered = false;
+        scene.subjects[index].attack_reaction = kAttackReactionIdle;
         ClearAttackMark(scene.attack_marks[index]);
     }
 }
@@ -60,6 +65,8 @@ void BeginTrial(SceneState& scene) {
         RememberPose(scene.start_layout.subjects[index], scene.subjects[index]);
         scene.subjects[index].remaining = 3;
         scene.subjects[index].attack_cooldown = 0.0f;
+        scene.subjects[index].attack_buffered = false;
+        scene.subjects[index].attack_reaction = kAttackReactionIdle;
         ClearAttackMark(scene.attack_marks[index]);
     }
     ClearUnused(scene, count);

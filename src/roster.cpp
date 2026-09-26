@@ -1,5 +1,6 @@
 #include "roster.hpp"
 
+#include "attack.hpp"
 #include "attack_mark.hpp"
 #include "renderer.hpp"
 
@@ -50,6 +51,8 @@ void ApplyBuiltinLayout(SceneState& scene) {
     for (int index = scene.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
         scene.subjects[index].attack_cooldown = 0.0f;
+        scene.subjects[index].attack_buffered = false;
+        scene.subjects[index].attack_reaction = kAttackReactionIdle;
         ClearAttackMark(scene.attack_marks[index]);
     }
     scene.layout_error.clear();

@@ -3,10 +3,11 @@
 struct AttackMark;
 struct Subject;
 
-// Walk toward the target on XZ at the player's speed. Inside the shared attack
-// volume, stop, face the target, and attack on the same interval. Stops when
-// either subject has no remaining. Contact does not reduce remaining.
-// keep_yaw leaves the mover's yaw alone for this frame.
+// Walk toward the target on XZ at the player's speed. Inside the attack volume,
+// stop and face the target. The first swing waits kOpponentReactionDelay after
+// the box overlaps. Later swings, while still in range, use kOpponentAttackInterval.
+// Leaving range clears the wait. Stops when either subject has no remaining.
+// Contact does not reduce remaining. keep_yaw leaves the mover's yaw alone for this frame.
 void ApproachAndAttack(
     Subject* subjects,
     int subject_count,

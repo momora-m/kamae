@@ -176,7 +176,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds. The opponent walks in and uses the same attack. Nothing walks or attacks until Start.");
+        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds. A Space press in the last 0.15 seconds is kept and fires once when that wait ends. Earlier presses are dropped. The opponent waits 0.5 seconds after it steps into range, then attacks every 0.8 seconds. Nothing walks or attacks until Start.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -233,7 +233,9 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 kPlayer,
                 frame_seconds,
                 attack_pressed,
-                &scene.attack_marks[kPlayer]);
+                &scene.attack_marks[kPlayer],
+                kPlayerAttackInterval,
+                true);
         } else {
             ClearAttackMark(scene.attack_marks[kPlayer]);
         }
