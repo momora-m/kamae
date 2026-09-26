@@ -87,6 +87,9 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
         kFloorHalfMax,
         "%.2f",
         ImGuiSliderFlags_AlwaysClamp);
+    if (ImGui::Button("Reset to initial")) {
+        ApplyBuiltinLayout(scene);
+    }
     static char scene_name[kSceneNameMax + 1] = "";
     ImGui::InputText("Scene name", scene_name, sizeof(scene_name));
     if (ImGui::Button("Save scene")) {

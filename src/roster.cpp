@@ -39,6 +39,22 @@ void AddSubject(SceneState& scene) {
     scene.subject_count += 1;
 }
 
+void ApplyBuiltinLayout(SceneState& scene) {
+    const SceneState builtin;
+    scene.floor_half = builtin.floor_half;
+    scene.subject_count = builtin.subject_count;
+    for (int index = 0; index < builtin.subject_count && index < kSubjectCapacity; ++index) {
+        scene.subjects[index] = builtin.subjects[index];
+        ClearAttackMark(scene.attack_marks[index]);
+    }
+    for (int index = scene.subject_count; index < kSubjectCapacity; ++index) {
+        scene.subjects[index].remaining = 0;
+        scene.subjects[index].attack_cooldown = 0.0f;
+        ClearAttackMark(scene.attack_marks[index]);
+    }
+    scene.layout_error.clear();
+}
+
 void RemoveLastSubject(SceneState& scene) {
     if (!CanRemoveSubject(scene)) {
         return;
