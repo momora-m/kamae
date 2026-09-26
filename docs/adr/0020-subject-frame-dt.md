@@ -4,6 +4,7 @@
 - 日付: 2026-09-26
 - 作業: [時間の止め方を ADR に残す](https://github.com/momora-m/kamae/issues/57)
 - 追加: 当たった主体の Δt を 0 にする長さは 4 フレームである。実装は [試走中の主体に、フレームの Δt を渡す](https://github.com/momora-m/kamae/issues/58)。当たるたびに 4 フレームへ戻す。
+- 追加: その Δt を試走が当たりの結果として適用することは [0023](0023-hit-is-session-result.md)。長さは、ここが現在の決定である。
 
 ## 文脈
 
