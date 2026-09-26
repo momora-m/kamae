@@ -1,5 +1,6 @@
 #include "roster.hpp"
 
+#include "actions.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "controller.hpp"
@@ -51,9 +52,12 @@ void ApplyBuiltinLayout(SceneState& scene) {
     for (int index = scene.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
         scene.subjects[index].attack_cooldown = 0.0f;
-        scene.subjects[index].attack_buffered = false;
+        scene.subjects[index].buffered_move = kMoveNone;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
+        scene.subjects[index].retreating = false;
+        scene.subjects[index].retreat_move = kMoveNone;
+        scene.subjects[index].focus_move = kMoveNone;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();

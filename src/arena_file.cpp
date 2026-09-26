@@ -1,5 +1,6 @@
 #include "arena_file.hpp"
 
+#include "actions.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "controller.hpp"
@@ -176,16 +177,22 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         subject.color[2] = source.color[2];
         subject.remaining = 3;
         subject.attack_cooldown = 0.0f;
-        subject.attack_buffered = false;
+        subject.buffered_move = kMoveNone;
         subject.attack_reaction = kAttackReactionIdle;
         subject.hitstop_frames = 0;
+        subject.retreating = false;
+        subject.retreat_move = kMoveNone;
+        subject.focus_move = kMoveNone;
     }
     for (int index = parsed.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
         scene.subjects[index].attack_cooldown = 0.0f;
-        scene.subjects[index].attack_buffered = false;
+        scene.subjects[index].buffered_move = kMoveNone;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
+        scene.subjects[index].retreating = false;
+        scene.subjects[index].retreat_move = kMoveNone;
+        scene.subjects[index].focus_move = kMoveNone;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();

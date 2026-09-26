@@ -35,9 +35,18 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
         BeginTrial(scene);
     }
     if (scene.session == SessionMode::Stopped) {
-        ImGui::TextUnformatted("Trial stopped. The layout stays until you return.");
-        if (ImGui::Button("Return to start")) {
+        if (ImGui::Button("Play again")) {
+            RestartTrial(scene);
+        } else if (ImGui::Button("Return to start")) {
             RestoreStartLayout(scene);
+        }
+        if (scene.session == SessionMode::Stopped) {
+            const TrialStop reason = TrialStopReason(scene);
+            if (reason == TrialStop::PlayerDepleted) {
+                ImGui::TextUnformatted("The player's remaining is gone.");
+            } else if (reason == TrialStop::OpponentsDepleted) {
+                ImGui::TextUnformatted("Every opponent in use is gone.");
+            }
         }
         ImGui::End();
         return;

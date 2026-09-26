@@ -152,7 +152,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for 3 frames. Startup and recovery are 0 frames, so the box hits on the swing and the next two frames. One swing hits a subject once. The next attack waits 0.4 seconds. A Space press in the last 0.15 seconds is kept and fires once when that wait ends. Earlier presses are dropped. The opponent waits 0.5 seconds after it steps into range, then attacks every 0.8 seconds. Nothing walks or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
+        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for 3 frames. Startup and recovery are 0 frames, so the box hits on the swing and the next two frames. One swing hits a subject once. The opponent walks in off the player's front, waits 0.5 seconds after a move's hit box overlaps, attacks with the short move when it reaches and the long move only when the short one does not, then walks back until that hit box misses. Space is the short move (forward 1.0, every 0.4 seconds). F is the long move (forward 2.0, every 1.0 seconds). A press in the last 0.15 seconds keeps only the last move. Nothing walks or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -209,7 +209,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 yaw_held[index]);
         }
         ApplyVolumeHits(scene);
-        if (TrialShouldStop(scene)) {
+        if (TrialStopReason(scene) != TrialStop::Continue) {
             scene.session = SessionMode::Stopped;
         }
     } else if (scene.session == SessionMode::Editing) {

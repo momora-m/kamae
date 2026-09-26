@@ -53,8 +53,10 @@ struct StartLayout {
 // One body in the shared list. Index 0 is the player. Further bodies are more elements.
 // subject_count is how many slots are in use. The array length is the maximum.
 // remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
-// attack_buffered is the player's Space in the last 0.15 seconds of cooldown.
+// buffered_move is the player's last move in the last 0.15 seconds of cooldown.
+// 0 is no move.
 // attack_reaction below zero means this opponent is not in the in-range wait.
+// retreating walks backward and does not attack, until the attack box misses.
 // hitstop_frames is how many coming trial frames pass 0 seconds to walk and attack.
 // It is not the attack volume's lifetime.
 struct Subject {
@@ -63,9 +65,15 @@ struct Subject {
     float color[3] = {0.78f, 0.48f, 0.27f};
     int remaining = 3;
     float attack_cooldown = 0.0f;
-    bool attack_buffered = false;
+    int buffered_move = 0;
     float attack_reaction = -1.0f;
     int hitstop_frames = 0;
+    // After a swing, walk back until this attack box misses the player.
+    bool retreating = false;
+    // Which move's box the retreat must clear. 0 is none.
+    int retreat_move = 0;
+    // Which move the in-range wait is counting for. 0 is none.
+    int focus_move = 0;
 };
 
 struct SceneState {

@@ -4,7 +4,7 @@
 
 SubjectActions PlayerActionsFromKeys(bool viewport_hovered) {
     if (!viewport_hovered || ImGui::GetIO().WantTextInput) {
-        return SubjectActions{HorizontalWalk{0.0f, 0.0f}, false};
+        return SubjectActions{HorizontalWalk{0.0f, 0.0f}, kMoveNone};
     }
 
     float strafe = 0.0f;
@@ -21,6 +21,12 @@ SubjectActions PlayerActionsFromKeys(bool viewport_hovered) {
     if (ImGui::IsKeyDown(ImGuiKey_S)) {
         forward -= 1.0f;
     }
-    const bool attack = ImGui::IsKeyPressed(ImGuiKey_Space, false);
-    return SubjectActions{HorizontalWalk{strafe, forward}, attack};
+    int move = kMoveNone;
+    if (ImGui::IsKeyPressed(ImGuiKey_Space, false)) {
+        move = kMovePoke;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
+        move = kMoveLong;
+    }
+    return SubjectActions{HorizontalWalk{strafe, forward}, move};
 }

@@ -5,8 +5,9 @@
 
 struct Subject;
 
-// First opponent states. Each one is a horizontal walk plus attack yes/no.
-// Circling and backing off would only change the walk direction.
+// First opponent states. Each one is a horizontal walk plus which move to swing.
+// Backing off after a swing is a backward walk, not another state.
+// Circling while approaching is a strafe on that same walk.
 enum class OpponentState {
     Approach,
     Wait,
@@ -17,11 +18,12 @@ enum class OpponentState {
 struct OpponentCommand {
     OpponentState state;
     HorizontalWalk walk;
-    bool attack;
+    int move;
 };
 
 // Approach walks forward on the basis toward the target and does not attack.
 // Wait and Fire stand still. Fire asks the same Attack to swing.
+// A negative forward walk is the retreat after that swing.
 OpponentCommand CommandForOpponentState(OpponentState state);
 
 // Facing toward the target on XZ. Used as the walk basis while Approaching.
