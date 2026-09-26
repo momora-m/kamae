@@ -37,7 +37,7 @@
 | [0006](0006-walk-stops-at-floor-edge.md) | 床から落ちない。端の固定は 0008 が置き換えた |
 | [0007](0007-player-and-opponent-one-loop.md) | プレイヤーと相手は同じ並び |
 | [0008](0008-walk-stops-before-wall-and-subject.md) | 壁と他のキャラクターの手前で止まる |
-| [0009](0009-attack-reduces-remaining.md) | 攻撃が届くと残りが減る |
+| [0009](0009-attack-reduces-remaining.md) | 攻撃が届くと体力が減る |
 | [0010](0010-attack-box-one-frame.md) | 判定と同じヒットボックスを描く。1 フレームだけは 0019 が置き換えた |
 | [0011](0011-opponent-same-attack.md) | 相手は同じ攻撃でプレイヤーを倒す |
 | [0012](0012-edit-subject-pose.md) | パネルで位置とヨーを編集する |
@@ -48,7 +48,7 @@
 | [0017](0017-actions-reach-subjects.md) | キャラクターが受け取るのは歩きと攻撃する／しない |
 | [0018](0018-opponent-state-is-actions.md) | 相手の状態は、その入力の組み合わせ |
 | [0019](0019-attack-volume-lifetime.md) | ヒットボックスは 3 フレーム |
-| [0020](0020-subject-frame-dt.md) | キャラクターごとにデルタタイム。被弾は 4 フレーム 0 |
+| [0020](0020-subject-frame-dt.md) | キャラクターごとに経過秒。被弾は 4 フレーム 0 |
 | [0021](0021-controller-attaches-to-subject.md) | コントローラーはキャラクターに付く |
 | [0022](0022-session-owns-volumes.md) | ヒットボックスはプレイが持つ並び |
 | [0023](0023-hit-is-session-result.md) | ヒットはプレイが適用する結果 |
