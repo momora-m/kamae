@@ -2,7 +2,10 @@
 
 #include "attack.hpp"
 #include "attack_mark.hpp"
+#include "controller.hpp"
+#include "overlap.hpp"
 #include "renderer.hpp"
+#include "walk.hpp"
 
 namespace {
 
@@ -81,6 +84,7 @@ void BeginTrial(SceneState& scene) {
         ClearAttackMark(scene.attack_marks[index]);
     }
     ClearUnused(scene, count);
+    AttachControllers(scene);
     scene.session = SessionMode::Trial;
 }
 
@@ -94,6 +98,7 @@ void RestoreStartLayout(SceneState& scene) {
     }
     ClearUnused(scene, count);
     scene.layout_error.clear();
+    AttachControllers(scene);
     scene.session = SessionMode::Editing;
 }
 
@@ -114,4 +119,37 @@ bool TrialShouldStop(const SceneState& scene) {
         }
     }
     return true;
+}
+
+void ApplySubjectActions(
+    SceneState& scene,
+    int subject_index,
+    const SubjectActions& actions,
+    const HorizontalBasis& basis,
+    bool face_move,
+    float walk_seconds,
+    float frame_seconds,
+    float attack_interval,
+    bool buffer_early_press) {
+    if (subject_index < 0 || subject_index >= scene.subject_count) {
+        return;
+    }
+    if (scene.subjects[subject_index].remaining <= 0) {
+        return;
+    }
+
+    const float previous_x = scene.subjects[subject_index].position[0];
+    const float previous_z = scene.subjects[subject_index].position[2];
+    WalkCube(scene.subjects[subject_index], basis, actions.walk, walk_seconds, face_move);
+    ResolveHorizontalOverlap(
+        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
+    Attack(
+        scene.subjects,
+        scene.subject_count,
+        subject_index,
+        frame_seconds,
+        actions.attack,
+        &scene.attack_marks[subject_index],
+        attack_interval,
+        buffer_early_press);
 }

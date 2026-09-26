@@ -48,6 +48,8 @@ add_executable(editor WIN32
   src/walk.hpp
   src/actions.cpp
   src/actions.hpp
+  src/controller.cpp
+  src/controller.hpp
   src/overlap.cpp
   src/overlap.hpp
   src/attack.cpp

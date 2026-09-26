@@ -2,9 +2,9 @@
 
 #include "imgui.h"
 
-PlayerActions PlayerActionsFromKeys(bool viewport_hovered) {
+SubjectActions PlayerActionsFromKeys(bool viewport_hovered) {
     if (!viewport_hovered || ImGui::GetIO().WantTextInput) {
-        return PlayerActions{HorizontalWalk{0.0f, 0.0f}, false};
+        return SubjectActions{HorizontalWalk{0.0f, 0.0f}, false};
     }
 
     float strafe = 0.0f;
@@ -22,5 +22,5 @@ PlayerActions PlayerActionsFromKeys(bool viewport_hovered) {
         forward -= 1.0f;
     }
     const bool attack = ImGui::IsKeyPressed(ImGuiKey_Space, false);
-    return PlayerActions{HorizontalWalk{strafe, forward}, attack};
+    return SubjectActions{HorizontalWalk{strafe, forward}, attack};
 }
