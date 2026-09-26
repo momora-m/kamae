@@ -125,6 +125,10 @@ void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
 }
 
 void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds) {
+    // The bar reserves the top of the main viewport work area. EditorHost is
+    // placed on that work area, so the dock and the viewport fill below it.
+    ShowSceneMenu(scene);
+
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
