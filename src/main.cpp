@@ -109,25 +109,28 @@ void ApplyDefaultDockLayout(ImGuiID dockspace_id, ImVec2 node_size) {
     ImGuiID properties = 0;
     ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.30f, &properties, &viewport_node);
 
-    ImGuiID player_node = 0;
-    ImGuiID lower = 0;
-    ImGui::DockBuilderSplitNode(properties, ImGuiDir_Down, 0.64f, &lower, &player_node);
-
-    ImGuiID camera_node = 0;
-    ImGuiID render_node = 0;
-    ImGui::DockBuilderSplitNode(lower, ImGuiDir_Down, 0.50f, &render_node, &camera_node);
-
     ImGui::DockBuilderDockWindow("Viewport", viewport_node);
-    ImGui::DockBuilderDockWindow("Subjects", player_node);
-    ImGui::DockBuilderDockWindow("Camera", camera_node);
-    ImGui::DockBuilderDockWindow("Render", render_node);
+    ImGui::DockBuilderDockWindow("Subjects", properties);
+    ImGui::DockBuilderDockWindow("Camera", properties);
+    ImGui::DockBuilderDockWindow("Render", properties);
+    // A window tab id is GetID("#TAB"), seeded by the window id. Set it before
+    // Finish so the new tab bar opens on Subjects.
+    if (ImGuiDockNode* properties_node = ImGui::DockBuilderGetNode(properties)) {
+        properties_node->SelectedTabId = ImHashStr("#TAB", 0, ImHashStr("Subjects"));
+    }
     ImGui::DockBuilderFinish(dockspace_id);
+    ImGui::SetWindowFocus("Subjects");
 }
 
 void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds) {
     // The bar reserves the top of the main viewport work area. EditorHost is
     // placed on that work area, so the dock and the viewport fill below it.
-    ShowSceneMenu(scene);
+    // The menu sets reset_layout for the next frame, when this host can remove
+    // the dock node and build the default layout again.
+    static bool reset_layout = false;
+    const bool rebuild_layout = reset_layout;
+    reset_layout = false;
+    ShowSceneMenu(scene, &reset_layout);
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -147,11 +150,16 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     const ImGuiID dockspace_id = ImGui::GetID("EditorDockSpace");
     std::error_code ini_error;
     static bool apply_default_layout = !std::filesystem::exists("editor_layout.ini", ini_error);
-    if (apply_default_layout) {
+    if (apply_default_layout || rebuild_layout) {
         const ImVec2 node_size = ImGui::GetWindowSize();
         if (node_size.x >= 1.0f && node_size.y >= 1.0f) {
+            if (rebuild_layout) {
+                ImGui::DockBuilderRemoveNode(dockspace_id);
+            }
             apply_default_layout = false;
             ApplyDefaultDockLayout(dockspace_id, node_size);
+        } else if (rebuild_layout) {
+            reset_layout = true;
         }
     }
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));

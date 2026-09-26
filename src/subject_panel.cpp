@@ -104,7 +104,7 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
     ImGui::End();
 }
 
-void ShowSceneMenu(SceneState& scene) {
+void ShowSceneMenu(SceneState& scene, bool* reset_layout) {
     if (!ImGui::BeginMainMenuBar()) {
         return;
     }
@@ -137,6 +137,12 @@ void ShowSceneMenu(SceneState& scene) {
             ImGui::PopID();
         }
         ImGui::PopID();
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Window")) {
+        if (ImGui::MenuItem("Reset layout") && reset_layout != nullptr) {
+            *reset_layout = true;
+        }
         ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
