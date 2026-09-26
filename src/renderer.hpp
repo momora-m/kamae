@@ -53,6 +53,8 @@ struct StartLayout {
 // remaining starts at 3. Zero is not drawn, not a walk obstacle, and not an attack target.
 // attack_buffered is the player's Space in the last 0.15 seconds of cooldown.
 // attack_reaction below zero means this opponent is not in the in-range wait.
+// hitstop_frames is how many coming trial frames pass 0 seconds to walk and attack.
+// It is not the attack volume's lifetime.
 struct Subject {
     float position[3] = {0.0f, 0.0f, 0.0f};
     float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
@@ -61,6 +63,7 @@ struct Subject {
     float attack_cooldown = 0.0f;
     bool attack_buffered = false;
     float attack_reaction = -1.0f;
+    int hitstop_frames = 0;
 };
 
 struct SceneState {

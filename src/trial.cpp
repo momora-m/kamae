@@ -42,6 +42,7 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.attack_cooldown = 0.0f;
     subject.attack_buffered = false;
     subject.attack_reaction = kAttackReactionIdle;
+    subject.hitstop_frames = 0;
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -50,11 +51,20 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].attack_cooldown = 0.0f;
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
+        scene.subjects[index].hitstop_frames = 0;
         ClearAttackMark(scene.attack_marks[index]);
     }
 }
 
 }  // namespace
+
+float TakeSubjectFrameSeconds(Subject& subject, float frame_seconds) {
+    if (subject.hitstop_frames > 0) {
+        subject.hitstop_frames -= 1;
+        return 0.0f;
+    }
+    return frame_seconds;
+}
 
 void BeginTrial(SceneState& scene) {
     const int count = UsedCount(scene.subject_count);
@@ -67,6 +77,7 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].attack_cooldown = 0.0f;
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
+        scene.subjects[index].hitstop_frames = 0;
         ClearAttackMark(scene.attack_marks[index]);
     }
     ClearUnused(scene, count);

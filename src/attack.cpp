@@ -35,6 +35,7 @@ void ApplyVolumeHit(AttackMark& mark, Subject* subjects, int subject_count, int 
             continue;
         }
         other.remaining -= 1;
+        other.hitstop_frames = kHitstopFrames;
         mark.hit_mask |= bit;
     }
 }
