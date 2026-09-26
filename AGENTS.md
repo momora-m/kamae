@@ -20,6 +20,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0014-save-arena-layout.md` — 初期配置を arena.txt に保存し、起動時に読み戻す
 - `docs/adr/0015-edit-then-start-a-trial.md` — 編集と試走を分け、名前付きの配置から始める
 - `docs/adr/0016-winnable-trial-attack.md` — 先行入力と相手の初撃の待ち。間隔はプレイヤー 0.4 秒、相手 0.8 秒
+- `docs/adr/0017-actions-reach-subjects.md` — 試走中、主体は水平の歩きと攻撃する／しないだけを受け取る
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 
