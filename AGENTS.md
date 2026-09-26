@@ -13,7 +13,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0007-player-and-opponent-one-loop.md` — プレイヤーと相手は同じ並び。三人目は要素
 - `docs/adr/0008-walk-stops-before-wall-and-subject.md` — 歩行は壁と他の主体の手前で止まる
 - `docs/adr/0009-attack-reduces-remaining.md` — 攻撃が届くと残りが減る。尽きた主体は描かない
-- `docs/adr/0010-attack-box-one-frame.md` — 攻撃したフレームだけ、判定と同じ箱を描く
+- `docs/adr/0010-attack-box-one-frame.md` — 判定と同じ箱を一色で描く。出したフレームだけは 0019 が置き換えた
 - `docs/adr/0011-opponent-same-attack.md` — 相手は同じ攻撃でプレイヤーを倒す
 - `docs/adr/0012-edit-subject-pose.md` — パネルで全主体の位置とヨーを編集する
 - `docs/adr/0013-add-remove-opponents.md` — パネルで相手を 0 人から 3 人まで増減する
@@ -22,6 +22,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0016-winnable-trial-attack.md` — 先行入力と相手の初撃の待ち。間隔はプレイヤー 0.4 秒、相手 0.8 秒
 - `docs/adr/0017-actions-reach-subjects.md` — 試走中、主体は水平の歩きと攻撃する／しないだけを受け取る
 - `docs/adr/0018-opponent-state-is-actions.md` — 相手の状態は、その歩きと攻撃する／しないの組み合わせ。最初は近づく、間合いで待つ、撃つ
+- `docs/adr/0019-attack-volume-lifetime.md` — 攻撃の箱は 3 フレームの寿命。出始めと終わりは 0。判定と描画は同じ区間
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 
