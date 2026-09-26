@@ -30,10 +30,12 @@ inline float AdvanceAttackTimer(float remaining, float frame_seconds) {
 // Axis-aligned volume in front of the subject's yaw. Off-axis yaw uses the corners' bounds.
 AxisBox AttackBox(const Subject& attacker);
 
-// One press from the attacker, after walking. The hit is AttackBox, tested once.
+// One press from the attacker, after walking. The hit is AttackBox.
 // Other subjects in it lose one remaining. The attacker is unchanged. A subject with
 // no remaining does not attack and is not a target. When an attack is issued, mark
-// receives that same box for this frame only. attack_pressed is the caller's input.
+// receives that same box for kAttackVolumeActiveFrames. Later frames keep the box
+// only through TickAttackVolume. A subject already hit by this volume is not hit again.
+// attack_pressed is the caller's input.
 // attack_interval is stored on the attacker when a swing actually fires.
 // buffer_early_press remembers a player Space only in the last kAttackBufferWindow
 // of cooldown and fires it once when cooldown reaches 0. Earlier presses are dropped.
@@ -47,3 +49,7 @@ void Attack(
     AttackMark* mark,
     float attack_interval,
     bool buffer_early_press);
+
+// One frame of a volume Attack already spawned. Shortens remaining_frames.
+// While frames remain, the stored box is tested again. Walk and Δt are not used.
+void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count, int attacker_index);

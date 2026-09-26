@@ -9,12 +9,23 @@ constexpr float kAttackMarkBlue = 0.28f;
 
 }  // namespace
 
+static_assert(kAttackVolumeStartupFrames == 0, "the first ship has no windup");
+static_assert(kAttackVolumeRecoveryFrames == 0, "the first ship has no recovery after the hit");
+static_assert(
+    kAttackVolumeLifetimeFrames == kAttackVolumeActiveFrames,
+    "with startup and recovery at 0, the lifetime is the active range");
+static_assert(kAttackVolumeActiveFrames == 3, "draw and hit last three frames");
+
 void ClearAttackMark(AttackMark& mark) {
     mark.visible = false;
+    mark.remaining_frames = 0;
+    mark.hit_mask = 0;
 }
 
 void ShowAttackMark(AttackMark& mark, const AxisBox& box) {
     mark.visible = true;
+    mark.remaining_frames = kAttackVolumeActiveFrames;
+    mark.hit_mask = 0;
     mark.box = box;
     mark.color[0] = kAttackMarkRed;
     mark.color[1] = kAttackMarkGreen;
