@@ -21,6 +21,7 @@ Windows 向けアクションゲームエンジン。まだ初期で、実行フ
 - `docs/adr/0015-edit-then-start-a-trial.md` — 編集と試走を分け、名前付きの配置から始める
 - `docs/adr/0016-winnable-trial-attack.md` — 先行入力と相手の初撃の待ち。間隔はプレイヤー 0.4 秒、相手 0.8 秒
 - `docs/adr/0017-actions-reach-subjects.md` — 試走中、主体は水平の歩きと攻撃する／しないだけを受け取る
+- `docs/adr/0018-opponent-state-is-actions.md` — 相手の状態は、その歩きと攻撃する／しないの組み合わせ。最初は近づく、間合いで待つ、撃つ
 - `docs/adr/README.md` — ADR の書き方
 - `README.md` — Windows でのビルド
 
