@@ -12,6 +12,33 @@ namespace {
 constexpr float kAttackForward = 1.0f;
 constexpr float kAttackLateral = 0.5f;
 
+static_assert(kSubjectCapacity <= 32, "the volume hit mask has one bit per subject");
+
+void ApplyVolumeHit(AttackMark& mark, Subject* subjects, int subject_count, int attacker_index) {
+    if (subjects == nullptr || subject_count <= 0) {
+        return;
+    }
+    const int count = subject_count < kSubjectCapacity ? subject_count : kSubjectCapacity;
+    for (int index = 0; index < count; ++index) {
+        if (index == attacker_index) {
+            continue;
+        }
+        Subject& other = subjects[index];
+        if (other.remaining <= 0) {
+            continue;
+        }
+        const unsigned bit = 1u << static_cast<unsigned>(index);
+        if ((mark.hit_mask & bit) != 0u) {
+            continue;
+        }
+        if (!AxisBoxesOverlap(mark.box, SubjectBox(other))) {
+            continue;
+        }
+        other.remaining -= 1;
+        mark.hit_mask |= bit;
+    }
+}
+
 }  // namespace
 
 static_assert(kAttackReactionIdle < 0.0f, "an idle reaction is not a finished wait");
@@ -61,6 +88,20 @@ AxisBox AttackBox(const Subject& attacker) {
     };
 }
 
+void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count, int attacker_index) {
+    if (mark.remaining_frames <= 0) {
+        ClearAttackMark(mark);
+        return;
+    }
+    mark.remaining_frames -= 1;
+    if (mark.remaining_frames <= 0) {
+        ClearAttackMark(mark);
+        return;
+    }
+    mark.visible = true;
+    ApplyVolumeHit(mark, subjects, subject_count, attacker_index);
+}
+
 void Attack(
     Subject* subjects,
     int subject_count,
@@ -70,9 +111,6 @@ void Attack(
     AttackMark* mark,
     float attack_interval,
     bool buffer_early_press) {
-    if (mark != nullptr) {
-        ClearAttackMark(*mark);
-    }
     if (subjects == nullptr || attacker_index < 0 || attacker_index >= subject_count) {
         return;
     }
@@ -95,21 +133,8 @@ void Attack(
     attacker.attack_buffered = false;
     attacker.attack_cooldown = attack_interval;
 
-    const AxisBox hit = AttackBox(attacker);
-    if (mark != nullptr) {
-        ShowAttackMark(*mark, hit);
-    }
-    for (int index = 0; index < subject_count; ++index) {
-        if (index == attacker_index) {
-            continue;
-        }
-        Subject& other = subjects[index];
-        if (other.remaining <= 0) {
-            continue;
-        }
-        if (!AxisBoxesOverlap(hit, SubjectBox(other))) {
-            continue;
-        }
-        other.remaining -= 1;
-    }
+    AttackMark spawned;
+    AttackMark& volume = mark != nullptr ? *mark : spawned;
+    ShowAttackMark(volume, AttackBox(attacker));
+    ApplyVolumeHit(volume, subjects, subject_count, attacker_index);
 }

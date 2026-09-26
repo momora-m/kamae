@@ -1,7 +1,6 @@
 #include "approach.hpp"
 
 #include "attack.hpp"
-#include "attack_mark.hpp"
 #include "overlap.hpp"
 #include "renderer.hpp"
 
@@ -47,9 +46,6 @@ void ApproachAndAttack(
     if (subjects == nullptr || mover_index < 0 || target_index < 0 || mover_index >= subject_count ||
         target_index >= subject_count || mover_index == target_index || subjects[mover_index].remaining <= 0 ||
         subjects[target_index].remaining <= 0) {
-        if (mark != nullptr) {
-            ClearAttackMark(*mark);
-        }
         return;
     }
 

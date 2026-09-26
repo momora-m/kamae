@@ -177,7 +177,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped("Left-drag inside the viewport to orbit around the player.");
     ImGui::Checkbox("Walk with the camera yaw", &scene.walk_with_camera_yaw);
     ImGui::TextWrapped(
-        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for one frame. The next attack waits 0.4 seconds. A Space press in the last 0.15 seconds is kept and fires once when that wait ends. Earlier presses are dropped. The opponent waits 0.5 seconds after it steps into range, then attacks every 0.8 seconds. Nothing walks or attacks until Start.");
+        "During a trial, hover the viewport and press WASD. Off, the player walks along its own yaw. On, it walks along the camera yaw and faces the move. Space attacks along the player's yaw and shows that hit box for 3 frames. Startup and recovery are 0 frames, so the box hits on the swing and the next two frames. One swing hits a subject once. The next attack waits 0.4 seconds. A Space press in the last 0.15 seconds is kept and fires once when that wait ends. Earlier presses are dropped. The opponent waits 0.5 seconds after it steps into range, then attacks every 0.8 seconds. Nothing walks or attacks until Start.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -214,6 +214,12 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
             scene.camera_pitch - delta.y * 0.008f, -kCameraPitchLimit, kCameraPitchLimit);
     }
     const bool viewport_hovered = ImGui::IsItemHovered();
+    if (scene.session == SessionMode::Trial || scene.session == SessionMode::Stopped) {
+        for (int index = 0; index < scene.subject_count; ++index) {
+            TickAttackVolume(
+                scene.attack_marks[index], scene.subjects, scene.subject_count, index);
+        }
+    }
     if (scene.session == SessionMode::Trial) {
         if (scene.subjects[kPlayer].remaining > 0) {
             const float player_yaw =
@@ -236,8 +242,6 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
                 &scene.attack_marks[kPlayer],
                 kPlayerAttackInterval,
                 true);
-        } else {
-            ClearAttackMark(scene.attack_marks[kPlayer]);
         }
         for (int index = kPlayer + 1; index < scene.subject_count; ++index) {
             ApproachAndAttack(
@@ -253,7 +257,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         if (TrialShouldStop(scene)) {
             scene.session = SessionMode::Stopped;
         }
-    } else {
+    } else if (scene.session == SessionMode::Editing) {
         for (int index = 0; index < kSubjectCapacity; ++index) {
             ClearAttackMark(scene.attack_marks[index]);
         }
