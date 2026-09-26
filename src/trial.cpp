@@ -55,8 +55,8 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
-        ClearAttackMark(scene.attack_marks[index]);
     }
+    ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
 
 }  // namespace
@@ -81,7 +81,6 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
-        ClearAttackMark(scene.attack_marks[index]);
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -94,7 +93,6 @@ void RestoreStartLayout(SceneState& scene) {
     scene.subject_count = count;
     for (int index = 0; index < count; ++index) {
         ApplyRememberedPose(scene.subjects[index], scene.start_layout.subjects[index]);
-        ClearAttackMark(scene.attack_marks[index]);
     }
     ClearUnused(scene, count);
     scene.layout_error.clear();
@@ -149,7 +147,9 @@ void ApplySubjectActions(
         subject_index,
         frame_seconds,
         actions.attack,
-        &scene.attack_marks[subject_index],
+        scene.volumes,
+        scene.volume_count,
+        kVolumeCapacity,
         attack_interval,
         buffer_early_press);
 }

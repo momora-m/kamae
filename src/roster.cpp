@@ -37,7 +37,6 @@ void AddSubject(SceneState& scene) {
         3,
         0.0f,
     };
-    ClearAttackMark(scene.attack_marks[scene.subject_count]);
     scene.subject_count += 1;
     AttachControllers(scene);
 }
@@ -48,7 +47,6 @@ void ApplyBuiltinLayout(SceneState& scene) {
     scene.subject_count = builtin.subject_count;
     for (int index = 0; index < builtin.subject_count && index < kSubjectCapacity; ++index) {
         scene.subjects[index] = builtin.subjects[index];
-        ClearAttackMark(scene.attack_marks[index]);
     }
     for (int index = scene.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
@@ -56,8 +54,8 @@ void ApplyBuiltinLayout(SceneState& scene) {
         scene.subjects[index].attack_buffered = false;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
-        ClearAttackMark(scene.attack_marks[index]);
     }
+    ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();
     AttachControllers(scene);
 }
@@ -67,7 +65,6 @@ void RemoveLastSubject(SceneState& scene) {
         return;
     }
     scene.subject_count -= 1;
-    ClearAttackMark(scene.attack_marks[scene.subject_count]);
     scene.subjects[scene.subject_count].remaining = 0;
     AttachControllers(scene);
 }

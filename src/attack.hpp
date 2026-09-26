@@ -35,10 +35,11 @@ AxisBox AttackBox(const Subject& attacker);
 
 // One press from the attacker, after walking. The hit is AttackBox.
 // Other subjects in it lose one remaining. The attacker is unchanged. A subject with
-// no remaining does not attack and is not a target. When an attack is issued, mark
-// receives that same box for kAttackVolumeActiveFrames. Later frames keep the box
-// only through TickAttackVolume. A subject already hit by this volume is not hit again.
-// attack_pressed is the caller's input.
+// no remaining does not attack and is not a target. When an attack is issued, the
+// same box is appended to the trial volume list for kAttackVolumeActiveFrames.
+// Later frames keep the box only through TickAttackVolumes. A subject already hit
+// by this volume is not hit again. The list is not a per-subject slot. A full list
+// does not spawn. attack_pressed is the caller's input.
 // attack_interval is stored on the attacker when a swing actually fires.
 // buffer_early_press remembers a player Space only in the last kAttackBufferWindow
 // of cooldown and fires it once when cooldown reaches 0. Earlier presses are dropped.
@@ -49,10 +50,15 @@ void Attack(
     int attacker_index,
     float frame_seconds,
     bool attack_pressed,
-    AttackMark* mark,
+    AttackMark* volumes,
+    int& volume_count,
+    int volume_capacity,
     float attack_interval,
     bool buffer_early_press);
 
 // One frame of a volume Attack already spawned. Shortens remaining_frames.
 // While frames remain, the stored box is tested again. Walk and Δt are not used.
-void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count, int attacker_index);
+void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count);
+
+// One frame of every volume the trial owns. Expired entries leave the list.
+void TickAttackVolumes(AttackMark* volumes, int& volume_count, Subject* subjects, int subject_count);

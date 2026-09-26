@@ -369,8 +369,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             constants);
     }
 
-    for (int index = 0; index < scene.subject_count && index < kSubjectCapacity; ++index) {
-        const AttackMark& mark = scene.attack_marks[index];
+    for (int index = 0; index < scene.volume_count && index < kVolumeCapacity; ++index) {
+        const AttackMark& mark = scene.volumes[index];
         if (!mark.visible) {
             continue;
         }

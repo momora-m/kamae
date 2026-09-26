@@ -26,6 +26,7 @@ constexpr float kFloorHalfExtent = 20.0f;
 constexpr float kFloorHalfMin = 4.0f;
 constexpr float kFloorHalfMax = 40.0f;
 constexpr int kSubjectCapacity = 4;
+constexpr int kVolumeCapacity = kSubjectCapacity;
 constexpr int kPlayer = 0;
 
 // Editing keeps time stopped. A trial starts only from an explicit Start.
@@ -86,7 +87,8 @@ struct SceneState {
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
     bool walk_with_camera_yaw = false;
-    AttackMark attack_marks[kSubjectCapacity]{};
+    AttackMark volumes[kVolumeCapacity]{};
+    int volume_count = 0;
     Controller controllers[kSubjectCapacity] = {
         Controller{ControllerKind::PlayerKeys, 0, 0},
         Controller{ControllerKind::OpponentApproach, 1, 0},
@@ -97,6 +99,7 @@ struct SceneState {
 
 static_assert(kPlayer == 0, "the player is the first subject");
 static_assert(kSubjectCapacity == 4, "the list holds the player and three more");
+static_assert(kVolumeCapacity == kSubjectCapacity, "the volume list fits one swing per subject");
 static_assert(kSubjectCapacity > kPlayer, "the player fits in the list");
 
 // Win32 window, DirectX 11 device, one lit cube per subject, and a ground plate in an offscreen target.

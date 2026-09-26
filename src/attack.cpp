@@ -89,7 +89,7 @@ AxisBox AttackBox(const Subject& attacker) {
     };
 }
 
-void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count, int attacker_index) {
+void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count) {
     if (mark.remaining_frames <= 0) {
         ClearAttackMark(mark);
         return;
@@ -100,7 +100,29 @@ void TickAttackVolume(AttackMark& mark, Subject* subjects, int subject_count, in
         return;
     }
     mark.visible = true;
-    ApplyVolumeHit(mark, subjects, subject_count, attacker_index);
+    ApplyVolumeHit(mark, subjects, subject_count, mark.attacker_index);
+}
+
+void TickAttackVolumes(AttackMark* volumes, int& volume_count, Subject* subjects, int subject_count) {
+    if (volumes == nullptr || volume_count <= 0) {
+        volume_count = 0;
+        return;
+    }
+    int kept = 0;
+    for (int index = 0; index < volume_count; ++index) {
+        TickAttackVolume(volumes[index], subjects, subject_count);
+        if (volumes[index].remaining_frames <= 0) {
+            continue;
+        }
+        if (kept != index) {
+            volumes[kept] = volumes[index];
+        }
+        kept += 1;
+    }
+    for (int index = kept; index < volume_count; ++index) {
+        ClearAttackMark(volumes[index]);
+    }
+    volume_count = kept;
 }
 
 void Attack(
@@ -109,7 +131,9 @@ void Attack(
     int attacker_index,
     float frame_seconds,
     bool attack_pressed,
-    AttackMark* mark,
+    AttackMark* volumes,
+    int& volume_count,
+    int volume_capacity,
     float attack_interval,
     bool buffer_early_press) {
     if (subjects == nullptr || attacker_index < 0 || attacker_index >= subject_count) {
@@ -134,8 +158,11 @@ void Attack(
     attacker.attack_buffered = false;
     attacker.attack_cooldown = attack_interval;
 
-    AttackMark spawned;
-    AttackMark& volume = mark != nullptr ? *mark : spawned;
-    ShowAttackMark(volume, AttackBox(attacker));
+    if (volumes == nullptr || volume_count < 0 || volume_count >= volume_capacity) {
+        return;
+    }
+    AttackMark& volume = volumes[volume_count];
+    ShowAttackMark(volume, AttackBox(attacker), attacker_index);
+    volume_count += 1;
     ApplyVolumeHit(volume, subjects, subject_count, attacker_index);
 }
