@@ -19,9 +19,20 @@ void BeginTrial(SceneState& scene);
 // Puts the remembered layout back and returns to editing. Does not start again.
 void RestoreStartLayout(SceneState& scene);
 
-// True when the player has no remaining, or every opponent in use has none.
-// Zero opponents do not end the trial by this check.
-bool TrialShouldStop(const SceneState& scene);
+// Puts the remembered layout back and starts play. Remaining is 3 and cooldown
+// is 0. Does not remember the stopped layout. Does not return to editing.
+void RestartTrial(SceneState& scene);
+
+// Why a trial stops. Continue leaves the session in play.
+// Zero opponents never produce OpponentsDepleted.
+// Both depleted on the same frame is PlayerDepleted.
+enum class TrialStop {
+    Continue,
+    PlayerDepleted,
+    OpponentsDepleted,
+};
+
+TrialStop TrialStopReason(const SceneState& scene);
 
 // Walk and attack from emitted actions. Overlap is resolved after the step.
 // walk_seconds may be shorter than frame_seconds so an approach does not
@@ -38,5 +49,4 @@ void ApplySubjectActions(
     bool face_move,
     float walk_seconds,
     float frame_seconds,
-    float attack_interval,
     bool buffer_early_press);

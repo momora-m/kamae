@@ -2,7 +2,7 @@
 
 struct SceneState;
 
-// Two controllers. Both emit the same horizontal walk and attack yes/no.
+// Two controllers. Both emit the same horizontal walk and move id.
 enum class ControllerKind {
     PlayerKeys,
     OpponentApproach,

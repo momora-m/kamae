@@ -100,7 +100,6 @@ void StepController(
             scene.walk_with_camera_yaw,
             frame_seconds,
             frame_seconds,
-            kPlayerAttackInterval,
             true);
         return;
     }
@@ -115,20 +114,24 @@ void StepController(
         keep_yaw);
     HorizontalBasis basis = BasisFromCubeYaw(
         scene.subjects[subject_index].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f));
+    const bool backing_up = actions.walk.forward < 0.0f;
     float walk_seconds = 0.0f;
     if (target_index >= 0 && target_index < scene.subject_count) {
         basis = ApproachBasis(scene.subjects[subject_index], scene.subjects[target_index]);
-        walk_seconds =
-            ApproachWalkSeconds(scene.subjects[subject_index], scene.subjects[target_index], frame_seconds);
+        if (backing_up || actions.walk.strafe != 0.0f) {
+            walk_seconds = frame_seconds;
+        } else if (actions.walk.forward > 0.0f) {
+            walk_seconds =
+                ApproachWalkSeconds(scene.subjects[subject_index], scene.subjects[target_index], frame_seconds);
+        }
     }
     ApplySubjectActions(
         scene,
         subject_index,
         actions,
         basis,
-        !keep_yaw,
+        backing_up ? false : !keep_yaw,
         walk_seconds,
         frame_seconds,
-        kOpponentAttackInterval,
         false);
 }
