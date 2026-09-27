@@ -52,6 +52,7 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.focus_move = kMoveNone;
     subject.swing_move = kMoveNone;
     subject.swing_elapsed = 0;
+    subject.guarding = false;
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -66,6 +67,7 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].focus_move = kMoveNone;
         scene.subjects[index].swing_move = kMoveNone;
         scene.subjects[index].swing_elapsed = 0;
+        scene.subjects[index].guarding = false;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
@@ -97,6 +99,7 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].focus_move = kMoveNone;
         scene.subjects[index].swing_move = kMoveNone;
         scene.subjects[index].swing_elapsed = 0;
+        scene.subjects[index].guarding = false;
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -163,7 +166,9 @@ void ApplyVolumeHits(SceneState& scene) {
             if (target_index < 0 || target_index >= scene.subject_count) {
                 continue;
             }
-            ApplyHit(scene.subjects[target_index]);
+            if (!GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
+                ApplyHit(scene.subjects[target_index]);
+            }
         }
     }
 }
@@ -184,6 +189,8 @@ void ApplySubjectActions(
         return;
     }
 
+    Subject& subject = scene.subjects[subject_index];
+    subject.guarding = actions.guard && subject.swing_move == kMoveNone;
     AdvanceAttack(
         scene.subjects,
         scene.subject_count,
@@ -191,10 +198,10 @@ void ApplySubjectActions(
         frame_seconds,
         actions.move,
         buffer_early_press);
-    if (!MoveLocksWalk(scene.subjects[subject_index])) {
-        const float previous_x = scene.subjects[subject_index].position[0];
-        const float previous_z = scene.subjects[subject_index].position[2];
-        WalkCube(scene.subjects[subject_index], basis, actions.walk, walk_seconds, face_move);
+    if (!MoveLocksWalk(subject) && !subject.guarding) {
+        const float previous_x = subject.position[0];
+        const float previous_z = subject.position[2];
+        WalkCube(subject, basis, actions.walk, walk_seconds, face_move);
         ResolveHorizontalOverlap(
             scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
     }

@@ -60,6 +60,7 @@ void ApplyBuiltinLayout(SceneState& scene) {
         scene.subjects[index].focus_move = kMoveNone;
         scene.subjects[index].swing_move = kMoveNone;
         scene.subjects[index].swing_elapsed = 0;
+        scene.subjects[index].guarding = false;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();

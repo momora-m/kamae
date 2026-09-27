@@ -78,6 +78,8 @@ struct Subject {
     int focus_move = 0;
     int swing_move = 0;
     int swing_elapsed = 0;
+    // True while this subject is guarding this trial frame.
+    bool guarding = false;
 };
 
 struct SceneState {

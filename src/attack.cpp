@@ -63,6 +63,7 @@ static_assert(
     Subject{}.attack_reaction == kAttackReactionIdle, "a new subject has not started the in-range wait");
 static_assert(Subject{}.swing_move == kMoveNone, "a new subject is not in a swing");
 static_assert(Subject{}.swing_elapsed == 0, "a new subject has no swing frames");
+static_assert(!Subject{}.guarding, "a new subject is not guarding");
 
 bool TryMove(int move_id, MoveRow& row) {
     if (move_id == kMovePoke) {
@@ -203,7 +204,7 @@ void AdvanceAttack(
         attacker.buffered_move = move_id;
     }
     int fired = kMoveNone;
-    if (attacker.attack_cooldown <= 0.0f && attacker.swing_move == kMoveNone) {
+    if (attacker.attack_cooldown <= 0.0f && attacker.swing_move == kMoveNone && !attacker.guarding) {
         if (move_id != kMoveNone) {
             fired = move_id;
         } else if (buffer_early_press && attacker.buffered_move != kMoveNone) {

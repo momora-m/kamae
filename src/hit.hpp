@@ -17,5 +17,9 @@ int CollectVolumeHits(
     Hit* hits,
     int hit_capacity);
 
+// True when the defender is guarding and the volume's center sits in front
+// of the defender's yaw. Side and back do not block. Does not change remaining.
+bool GuardBlocksHit(const Subject& defender, const AttackMark& mark);
+
 // Remaining loses 1. The next kHitstopFrames pass 0 seconds to walk and attack.
 void ApplyHit(Subject& subject);
