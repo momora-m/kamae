@@ -2,18 +2,15 @@
 
 #include "overlap.hpp"
 
-// Startup and recovery are 0, so the whole lifetime is the active range.
-// Draw and hit test share these frames. This is not a windup.
-constexpr int kAttackVolumeStartupFrames = 0;
+// Draw and hit test share these frames. The character's startup and recovery
+// live on the move row, not on the volume. See ADR 0030.
 constexpr int kAttackVolumeActiveFrames = 3;
-constexpr int kAttackVolumeRecoveryFrames = 0;
-constexpr int kAttackVolumeLifetimeFrames =
-    kAttackVolumeStartupFrames + kAttackVolumeActiveFrames + kAttackVolumeRecoveryFrames;
 
-// The hit box for one swing. Attack spawns it into the trial list. Each later
-// frame shortens remaining_frames. While frames remain, the box stays where it
-// was spawned. hit_mask records subjects already damaged by this volume, so
-// one swing reduces a subject once. attacker_index is who spawned it.
+// The hit box for one swing. SpawnAttackVolume writes it into the trial list.
+// Each later frame shortens remaining_frames. While frames remain, the box
+// stays where it was spawned. hit_mask records subjects already damaged by
+// this volume, so one swing reduces a subject once. attacker_index is who
+// spawned it.
 struct AttackMark {
     bool visible = false;
     int remaining_frames = 0;

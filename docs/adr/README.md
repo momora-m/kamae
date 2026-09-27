@@ -58,3 +58,4 @@
 | [0027](0027-second-move-reaches-farther.md) | 二つ目の技は、届く距離が長く、次までも長い | 前方リーチ 2.0・長クールダウンの強攻撃（F キー）追加 |
 | [0028](0028-restart-trial-from-start.md) | 停止中に、同じ開始状態からもう一度プレイを始める | 停止画面からの同一開始状態による即時再戦（Play again） |
 | [0029](0029-opponent-circles-while-approaching.md) | 相手は近づく途中で横に回る | 接近時の正面軸回避ストラフ移動 |
+| [0030](0030-move-has-startup-and-recovery.md) | 技には発生と硬直がある | 技テーブルへ発生 1F・持続 3F・硬直 1F を持たせ、発生と硬直のあいだは歩行と次の技を止める |

@@ -22,7 +22,7 @@ struct OpponentCommand {
 };
 
 // Approach walks forward on the basis toward the target and does not attack.
-// Wait and Fire stand still. Fire asks the same Attack to swing.
+// Wait and Fire stand still. Fire asks AdvanceAttack to start that swing.
 // A negative forward walk is the retreat after that swing.
 OpponentCommand CommandForOpponentState(OpponentState state);
 
@@ -30,8 +30,8 @@ OpponentCommand CommandForOpponentState(OpponentState state);
 HorizontalBasis BasisTowardTarget(float dx, float dz, float length);
 
 // Reads the opponent controller. Updates facing and the in-range wait.
-// Returns the same actions Walk and Attack already accept. Does not walk
-// and does not call Attack. keep_yaw leaves the mover's yaw alone.
+// Returns the same actions walk and AdvanceAttack already accept. Does not
+// walk and does not start a swing. keep_yaw leaves the mover's yaw alone.
 SubjectActions OpponentActions(
     Subject* subjects,
     int subject_count,
