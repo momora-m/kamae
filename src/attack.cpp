@@ -64,6 +64,8 @@ static_assert(
 static_assert(Subject{}.swing_move == kMoveNone, "a new subject is not in a swing");
 static_assert(Subject{}.swing_elapsed == 0, "a new subject has no swing frames");
 static_assert(!Subject{}.guarding, "a new subject is not guarding");
+static_assert(Subject{}.velocity[0] == 0.0f && Subject{}.velocity[1] == 0.0f && Subject{}.velocity[2] == 0.0f,
+    "a new subject has no leftover velocity");
 
 bool TryMove(int move_id, MoveRow& row) {
     if (move_id == kMovePoke) {

@@ -61,6 +61,7 @@ struct StartLayout {
 // It is not the attack volume's lifetime.
 // swing_move is the move in startup, active, or recovery. 0 is none.
 // swing_elapsed is trial frames since that swing was accepted.
+// velocity persists across trial frames. It is not stored in a scene.
 struct Subject {
     float position[3] = {0.0f, 0.0f, 0.0f};
     float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
@@ -80,6 +81,7 @@ struct Subject {
     int swing_elapsed = 0;
     // True while this subject is guarding this trial frame.
     bool guarding = false;
+    float velocity[3] = {0.0f, 0.0f, 0.0f};
 };
 
 struct SceneState {

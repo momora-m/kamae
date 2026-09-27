@@ -23,9 +23,10 @@ bool AxisBoxesOverlap(const AxisBox& a, const AxisBox& b);
 // Four immovable boxes. Inner faces sit on x, z = ±floor_half.
 void WallBoxes(AxisBox (&walls)[kWallCount], float floor_half);
 
-// After a walk, cancel X or Z when that axis overlaps a wall or another subject
+// After a step, cancel X or Z when that axis overlaps a wall or another subject
 // that still has remaining. previous_x and previous_z are the mover's position
-// before this frame's step. Y is left alone. Other subjects are not pushed.
+// before this frame's step. A cancelled axis also clears that velocity. Y is
+// left alone. Other subjects are not pushed.
 void ResolveHorizontalOverlap(
     Subject* subjects,
     int subject_count,

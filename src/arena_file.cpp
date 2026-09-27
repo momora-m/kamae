@@ -186,6 +186,9 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         subject.swing_move = kMoveNone;
         subject.swing_elapsed = 0;
         subject.guarding = false;
+        subject.velocity[0] = 0.0f;
+        subject.velocity[1] = 0.0f;
+        subject.velocity[2] = 0.0f;
     }
     for (int index = parsed.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
@@ -199,6 +202,9 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         scene.subjects[index].swing_move = kMoveNone;
         scene.subjects[index].swing_elapsed = 0;
         scene.subjects[index].guarding = false;
+        scene.subjects[index].velocity[0] = 0.0f;
+        scene.subjects[index].velocity[1] = 0.0f;
+        scene.subjects[index].velocity[2] = 0.0f;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();

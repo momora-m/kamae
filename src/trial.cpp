@@ -53,6 +53,9 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.swing_move = kMoveNone;
     subject.swing_elapsed = 0;
     subject.guarding = false;
+    subject.velocity[0] = 0.0f;
+    subject.velocity[1] = 0.0f;
+    subject.velocity[2] = 0.0f;
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -68,6 +71,9 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].swing_move = kMoveNone;
         scene.subjects[index].swing_elapsed = 0;
         scene.subjects[index].guarding = false;
+        scene.subjects[index].velocity[0] = 0.0f;
+        scene.subjects[index].velocity[1] = 0.0f;
+        scene.subjects[index].velocity[2] = 0.0f;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
@@ -100,6 +106,9 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].swing_move = kMoveNone;
         scene.subjects[index].swing_elapsed = 0;
         scene.subjects[index].guarding = false;
+        scene.subjects[index].velocity[0] = 0.0f;
+        scene.subjects[index].velocity[1] = 0.0f;
+        scene.subjects[index].velocity[2] = 0.0f;
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -198,13 +207,14 @@ void ApplySubjectActions(
         frame_seconds,
         actions.move,
         buffer_early_press);
-    if (!MoveLocksWalk(subject) && !subject.guarding) {
-        const float previous_x = subject.position[0];
-        const float previous_z = subject.position[2];
-        WalkCube(subject, basis, actions.walk, walk_seconds, face_move);
-        ResolveHorizontalOverlap(
-            scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
+    const float previous_x = subject.position[0];
+    const float previous_z = subject.position[2];
+    if (SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
+        WalkCube(subject, basis, actions.walk, walk_seconds, frame_seconds, face_move);
     }
+    IntegrateSubject(subject, frame_seconds);
+    ResolveHorizontalOverlap(
+        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
     SpawnAttackVolume(
         scene.subjects,
         scene.subject_count,
