@@ -18,6 +18,9 @@ struct AttackMark {
     int attacker_index = -1;
     AxisBox box{};
     float color[3] = {0.93f, 0.82f, 0.28f};
+    // Attacker's yaw forward when the volume was spawned. Yaw 0 faces +Z.
+    float forward_x = 0.0f;
+    float forward_z = 1.0f;
 };
 
 void ClearAttackMark(AttackMark& mark);

@@ -250,5 +250,8 @@ void SpawnAttackVolume(
     AttackMark& volume = volumes[volume_count];
     ShowAttackMark(volume, AttackBox(attacker, attacker.swing_move), attacker_index);
     volume.remaining_frames = row.active_frames;
+    const float yaw = attacker.rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    volume.forward_x = std::sin(yaw);
+    volume.forward_z = std::cos(yaw);
     volume_count += 1;
 }

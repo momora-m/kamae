@@ -8,6 +8,8 @@
 #include <cmath>
 #include <numbers>
 
+static_assert(kHitForce == 1.0f, "hit force is the smallest speed that opens 0.4 in 0.4 seconds");
+
 int CollectVolumeHits(
     AttackMark& mark,
     const Subject* subjects,
@@ -64,4 +66,9 @@ void ApplyHit(Subject& subject) {
     }
     subject.remaining -= 1;
     subject.hitstop_frames = kHitstopFrames;
+}
+
+void AddHitVelocity(Subject& subject, const AttackMark& mark) {
+    subject.velocity[0] += mark.forward_x * kHitForce;
+    subject.velocity[2] += mark.forward_z * kHitForce;
 }

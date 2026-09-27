@@ -177,9 +177,25 @@ void ApplyVolumeHits(SceneState& scene) {
             }
             if (!GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
                 ApplyHit(scene.subjects[target_index]);
+                AddHitVelocity(scene.subjects[target_index], scene.volumes[volume_index]);
             }
         }
     }
+}
+
+void IntegrateAndResolve(SceneState& scene, int subject_index, float frame_seconds) {
+    if (subject_index < 0 || subject_index >= scene.subject_count) {
+        return;
+    }
+    Subject& subject = scene.subjects[subject_index];
+    if (subject.remaining <= 0) {
+        return;
+    }
+    const float previous_x = subject.position[0];
+    const float previous_z = subject.position[2];
+    IntegrateSubject(subject, frame_seconds);
+    ResolveHorizontalOverlap(
+        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
 }
 
 void ApplySubjectActions(
@@ -207,14 +223,9 @@ void ApplySubjectActions(
         frame_seconds,
         actions.move,
         buffer_early_press);
-    const float previous_x = subject.position[0];
-    const float previous_z = subject.position[2];
     if (SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
         WalkCube(subject, basis, actions.walk, walk_seconds, frame_seconds, face_move);
     }
-    IntegrateSubject(subject, frame_seconds);
-    ResolveHorizontalOverlap(
-        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
     SpawnAttackVolume(
         scene.subjects,
         scene.subject_count,
