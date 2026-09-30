@@ -16,6 +16,8 @@ void ClearAttackMark(AttackMark& mark) {
     mark.remaining_frames = 0;
     mark.hit_mask = 0;
     mark.attacker_index = -1;
+    mark.forward_x = 0.0f;
+    mark.forward_z = 1.0f;
 }
 
 void ShowAttackMark(AttackMark& mark, const AxisBox& box, int attacker_index) {

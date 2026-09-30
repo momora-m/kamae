@@ -65,7 +65,8 @@ bool MoveLocksWalk(const Subject& subject);
 // is stored when a swing is accepted. buffer_early_press remembers the
 // player's last move only in the last kAttackBufferWindow of cooldown and
 // starts it once when cooldown reaches 0 and the current swing is over.
-// Earlier presses are dropped. Opponents pass false.
+// Earlier presses are dropped. A guarding subject does not start a new swing.
+// Opponents pass false.
 void AdvanceAttack(
     Subject* subjects,
     int subject_count,

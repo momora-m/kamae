@@ -92,10 +92,12 @@ void ResolveHorizontalOverlap(
     mover.position[2] = previous_z;
     if (Blocked(mover, subjects, subject_count, mover_index, floor_half)) {
         mover.position[0] = previous_x;
+        mover.velocity[0] = 0.0f;
     }
 
     mover.position[2] = moved_z;
     if (Blocked(mover, subjects, subject_count, mover_index, floor_half)) {
         mover.position[2] = previous_z;
+        mover.velocity[2] = 0.0f;
     }
 }

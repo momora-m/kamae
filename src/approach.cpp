@@ -71,7 +71,7 @@ SubjectActions OpponentActions(
     if (subjects == nullptr || mover_index < 0 || target_index < 0 || mover_index >= subject_count ||
         target_index >= subject_count || mover_index == target_index || subjects[mover_index].remaining <= 0 ||
         subjects[target_index].remaining <= 0) {
-        return SubjectActions{HorizontalWalk{0.0f, 0.0f}, kMoveNone};
+        return SubjectActions{HorizontalWalk{0.0f, 0.0f}, kMoveNone, false};
     }
 
     Subject& mover = subjects[mover_index];
@@ -92,6 +92,10 @@ SubjectActions OpponentActions(
     const bool retreat_overlaps =
         length >= kDirectionEpsilon && AxisBoxesOverlap(AttackBox(aimed, retreat_box), SubjectBox(target));
 
+    const bool player_box_overlaps =
+        AxisBoxesOverlap(AttackBox(target, kMovePoke), SubjectBox(mover)) ||
+        AxisBoxesOverlap(AttackBox(target, kMoveLong), SubjectBox(mover));
+
     if (mover.retreating) {
         if (!retreat_overlaps) {
             mover.retreating = false;
@@ -103,7 +107,7 @@ SubjectActions OpponentActions(
                 mover.rotation_degrees[1] = yaw_degrees;
             }
             mover.attack_reaction = kAttackReactionIdle;
-            return SubjectActions{HorizontalWalk{0.0f, -1.0f}, kMoveNone};
+            return SubjectActions{HorizontalWalk{0.0f, -1.0f}, kMoveNone, false};
         }
     }
 
@@ -125,11 +129,15 @@ SubjectActions OpponentActions(
         }
         mover.attack_reaction = AdvanceAttackTimer(mover.attack_reaction, frame_seconds);
         if (mover.attack_reaction <= 0.0f && mover.attack_cooldown <= 0.0f) {
-            mover.retreating = true;
-            mover.retreat_move = chosen;
-            mover.focus_move = kMoveNone;
-            mover.attack_reaction = kAttackReactionIdle;
-            state = OpponentState::Fire;
+            if (player_box_overlaps) {
+                state = OpponentState::Wait;
+            } else {
+                mover.retreating = true;
+                mover.retreat_move = chosen;
+                mover.focus_move = kMoveNone;
+                mover.attack_reaction = kAttackReactionIdle;
+                state = OpponentState::Fire;
+            }
         } else {
             state = OpponentState::Wait;
         }
@@ -146,5 +154,8 @@ SubjectActions OpponentActions(
     if (state == OpponentState::Approach) {
         command.walk.strafe = StrafeOffFront(mover, target);
     }
-    return SubjectActions{command.walk, command.move};
+    const bool guard =
+        state == OpponentState::Wait && player_box_overlaps && chosen != kMoveNone &&
+        mover.attack_reaction <= 0.0f && mover.attack_cooldown <= 0.0f;
+    return SubjectActions{command.walk, command.move, guard};
 }

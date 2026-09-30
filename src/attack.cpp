@@ -63,6 +63,9 @@ static_assert(
     Subject{}.attack_reaction == kAttackReactionIdle, "a new subject has not started the in-range wait");
 static_assert(Subject{}.swing_move == kMoveNone, "a new subject is not in a swing");
 static_assert(Subject{}.swing_elapsed == 0, "a new subject has no swing frames");
+static_assert(!Subject{}.guarding, "a new subject is not guarding");
+static_assert(Subject{}.velocity[0] == 0.0f && Subject{}.velocity[1] == 0.0f && Subject{}.velocity[2] == 0.0f,
+    "a new subject has no leftover velocity");
 
 bool TryMove(int move_id, MoveRow& row) {
     if (move_id == kMovePoke) {
@@ -203,7 +206,7 @@ void AdvanceAttack(
         attacker.buffered_move = move_id;
     }
     int fired = kMoveNone;
-    if (attacker.attack_cooldown <= 0.0f && attacker.swing_move == kMoveNone) {
+    if (attacker.attack_cooldown <= 0.0f && attacker.swing_move == kMoveNone && !attacker.guarding) {
         if (move_id != kMoveNone) {
             fired = move_id;
         } else if (buffer_early_press && attacker.buffered_move != kMoveNone) {
@@ -247,5 +250,8 @@ void SpawnAttackVolume(
     AttackMark& volume = volumes[volume_count];
     ShowAttackMark(volume, AttackBox(attacker, attacker.swing_move), attacker_index);
     volume.remaining_frames = row.active_frames;
+    const float yaw = attacker.rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    volume.forward_x = std::sin(yaw);
+    volume.forward_z = std::cos(yaw);
     volume_count += 1;
 }

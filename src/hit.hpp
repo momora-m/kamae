@@ -3,6 +3,10 @@
 struct AttackMark;
 struct Subject;
 
+// Horizontal speed added along the volume's forward on an unblocked hit.
+// Smaller than walk. Over 0.4 seconds without a walk replace it opens 0.4.
+constexpr float kHitForce = 1.0f;
+
 // One overlap the session may apply. The volume does not change remaining.
 struct Hit {
     int target_index = -1;
@@ -17,5 +21,12 @@ int CollectVolumeHits(
     Hit* hits,
     int hit_capacity);
 
+// True when the defender is guarding and the volume's center sits in front
+// of the defender's yaw. Side and back do not block. Does not change remaining.
+bool GuardBlocksHit(const Subject& defender, const AttackMark& mark);
+
 // Remaining loses 1. The next kHitstopFrames pass 0 seconds to walk and attack.
 void ApplyHit(Subject& subject);
+
+// Adds kHitForce along the volume's remembered forward. Y is left alone.
+void AddHitVelocity(Subject& subject, const AttackMark& mark);
