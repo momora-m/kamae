@@ -166,6 +166,11 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         ImGui::TextWrapped("%s", renderer.ShaderError().c_str());
         ImGui::PopStyleColor();
     }
+    if (!renderer.MeshError().empty()) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.45f, 0.35f, 1.0f));
+        ImGui::TextWrapped("%s", renderer.MeshError().c_str());
+        ImGui::PopStyleColor();
+    }
     ImGui::End();
 
     ImGui::Begin(

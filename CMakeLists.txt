@@ -68,11 +68,14 @@ add_executable(editor WIN32
   src/arena_file.hpp
   src/trial.cpp
   src/trial.hpp
+  src/mesh_file.cpp
+  src/mesh_file.hpp
   shaders/lit.hlsl
+  assets/character.gltf
   ${IMGUI_SOURCES}
 )
 
-set_source_files_properties(shaders/lit.hlsl PROPERTIES
+set_source_files_properties(shaders/lit.hlsl assets/character.gltf PROPERTIES
   HEADER_FILE_ONLY TRUE
   VS_TOOL_OVERRIDE "None"
 )
@@ -104,6 +107,12 @@ add_custom_command(TARGET editor POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           "${CMAKE_SOURCE_DIR}/shaders/lit.hlsl"
           "$<TARGET_FILE_DIR:editor>/lit.hlsl"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_SOURCE_DIR}/assets/character.gltf"
+          "$<TARGET_FILE_DIR:editor>/character.gltf"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_SOURCE_DIR}/assets/character.bin"
+          "$<TARGET_FILE_DIR:editor>/character.bin"
   VERBATIM
 )
 

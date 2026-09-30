@@ -1,4 +1,4 @@
-// Lit cube. Compiled at runtime with D3DCompile (vs_5_0 / ps_5_0).
+// Lit mesh. Compiled at runtime with D3DCompile (vs_5_0 / ps_5_0).
 // Matrices are row-major so they match DirectXMath's XMFLOAT4X4 layout.
 // Transform order is mul(position, matrix): row vector on the left.
 
