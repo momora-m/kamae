@@ -7,6 +7,7 @@
 #include "trial.hpp"
 #include "walk.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 
@@ -15,6 +16,7 @@ namespace {
 constexpr float kDirectionEpsilon = 0.001f;
 
 // Camera yaw 0 looks toward -Z. Pitch is ignored so the move stays on the ground.
+// The eye sits at (sin(yaw), cos(yaw)) on XZ, so yaw 0 is on +Z looking toward -Z.
 HorizontalBasis BasisFromCameraYaw(float yaw) {
     return HorizontalBasis{
         -std::sin(yaw),
@@ -62,6 +64,21 @@ HorizontalBasis ApproachBasis(const Subject& mover, const Subject& target) {
 
 }  // namespace
 
+float ActiveCameraYaw(const SceneState& scene) {
+    if (scene.session == SessionMode::Editing) {
+        return scene.camera_yaw;
+    }
+    // Yaw 0 faces +Z. Half a turn puts the eye on the back, looking along that facing.
+    const float facing = scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    return facing + std::numbers::pi_v<float> + scene.camera_yaw_offset;
+}
+
+float ActiveCameraPitch(const SceneState& scene) {
+    const float pitch =
+        scene.session == SessionMode::Editing ? scene.camera_pitch : scene.camera_pitch + scene.camera_pitch_offset;
+    return std::clamp(pitch, -kCameraPitchLimit, kCameraPitchLimit);
+}
+
 void AttachControllers(SceneState& scene) {
     for (int index = 0; index < kSubjectCapacity; ++index) {
         if (index == 0) {
@@ -87,17 +104,14 @@ void StepController(
     }
 
     if (controller.kind == ControllerKind::PlayerKeys) {
-        const float player_yaw =
-            scene.subjects[subject_index].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
-        const HorizontalBasis basis = scene.walk_with_camera_yaw ? BasisFromCameraYaw(scene.camera_yaw)
-                                                                 : BasisFromCubeYaw(player_yaw);
+        const HorizontalBasis basis = BasisFromCameraYaw(ActiveCameraYaw(scene));
         const SubjectActions actions = PlayerActionsFromKeys(viewport_hovered);
         ApplySubjectActions(
             scene,
             subject_index,
             actions,
             basis,
-            scene.walk_with_camera_yaw,
+            true,
             frame_seconds,
             frame_seconds,
             true);

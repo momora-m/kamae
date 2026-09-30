@@ -19,6 +19,11 @@ struct Controller {
 // First subject gets PlayerKeys. The rest get OpponentApproach toward subject 0.
 void AttachControllers(SceneState& scene);
 
+// Yaw used to draw and to walk. Editing keeps the stored orbit.
+// Play and a stopped trial sit behind the player, plus the drag offset.
+float ActiveCameraYaw(const SceneState& scene);
+float ActiveCameraPitch(const SceneState& scene);
+
 // One attached controller. Emits actions, then the trial walks and attacks.
 // remaining 0 does nothing. Walk and Attack do not treat index 0 as special.
 void StepController(
