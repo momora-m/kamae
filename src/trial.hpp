@@ -12,8 +12,9 @@ struct Subject;
 float TakeSubjectFrameSeconds(Subject& subject, float frame_seconds);
 
 // Remembers the edited layout, sets remaining to 3 and cooldown to 0, then
-// starts a trial. A buffered Space, an opponent's in-range wait, and hitstop
-// frames are cleared. Combat progress is not stored. Unsaved edits are included.
+// starts a trial. A buffered Space, an opponent's in-range wait, hitstop
+// frames, the current swing, and velocity are cleared. Combat progress is
+// not stored. Unsaved edits are included.
 void BeginTrial(SceneState& scene);
 
 // Puts the remembered layout back and returns to editing. Does not start again.
@@ -34,12 +35,20 @@ enum class TrialStop {
 
 TrialStop TrialStopReason(const SceneState& scene);
 
-// Walk and attack from emitted actions. Overlap is resolved after the step.
+// Walk and attack from emitted actions. On the floor, a walk replaces
+// horizontal velocity. Air and locked frames leave that velocity.
+// Startup, recovery, and guard skip the walk. Position is integrated after
+// hits so an unblocked hit can add velocity this frame.
 // walk_seconds may be shorter than frame_seconds so an approach does not
 // step past the target. Walk and Attack do not treat index 0 as special.
-// Collect overlaps from the trial volumes and apply remaining and hitstop.
-// Volumes do not change remaining themselves.
+// Collect overlaps from the trial volumes and apply remaining, hitstop,
+// and hit velocity. Blocked hits do not add velocity. Volumes do not
+// change remaining themselves.
 void ApplyVolumeHits(SceneState& scene);
+
+// Gravity and leftover velocity, then overlap. Call after ApplyVolumeHits
+// so a new volume can add force before the step.
+void IntegrateAndResolve(SceneState& scene, int subject_index, float frame_seconds);
 
 void ApplySubjectActions(
     SceneState& scene,

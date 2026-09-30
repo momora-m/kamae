@@ -20,6 +20,11 @@ constexpr float kAttackReactionIdle = -1.0f;
 // After a hit, the next this many trial frames pass 0 seconds into WalkCube and Attack.
 // Not a global pause, and not the attack volume lifetime.
 constexpr int kHitstopFrames = 4;
+// Both rows share these. Startup and recovery lock walk and a new move.
+// Active is the only window that spawns a volume. See ADR 0030.
+constexpr int kMoveStartupFrames = 1;
+constexpr int kMoveActiveFrames = 3;
+constexpr int kMoveRecoveryFrames = 1;
 // A leftover under a tenth of a millisecond is zero. A 0.1 second frame must not
 // stretch 0.4, 0.5, or 1.0 by another frame.
 constexpr float kAttackTimerEpsilon = 0.0001f;
@@ -34,11 +39,14 @@ inline float AdvanceAttackTimer(float remaining, float frame_seconds) {
     return remaining;
 }
 
-// Reach and interval for one move id. kMoveNone is not a row.
+// Reach, interval, and frame data for one move id. kMoveNone is not a row.
 struct MoveRow {
     float forward = 1.0f;
     float lateral = 0.5f;
     float interval = 0.4f;
+    int startup_frames = kMoveStartupFrames;
+    int active_frames = kMoveActiveFrames;
+    int recovery_frames = kMoveRecoveryFrames;
 };
 
 // False when move_id is kMoveNone or unknown. Row 0 is the poke. Row 1 is the long move.
@@ -48,27 +56,38 @@ bool TryMove(int move_id, MoveRow& row);
 // Off-axis yaw uses the corners' bounds. An unknown move yields no extension.
 AxisBox AttackBox(const Subject& attacker, int move_id);
 
-// One move from the attacker, after walking. Spawns that row's box into the trial
-// list for kAttackVolumeActiveFrames. Does not apply remaining or hitstop.
-// A subject with no remaining does not attack. Later frames keep the box only
-// through TickAttackVolumes. The list is not a per-subject slot. A full list
-// does not spawn. move_id is the caller's input. kMoveNone does not swing.
-// The row's interval is stored on the attacker when a swing actually fires.
-// buffer_early_press remembers the player's last move only in the last
-// kAttackBufferWindow of cooldown and fires it once when cooldown reaches 0.
-// Earlier presses are dropped. That memory is not a windup. Opponents pass false.
-void Attack(
+// True during that subject's startup or recovery. Active and idle do not lock.
+bool MoveLocksWalk(const Subject& subject);
+
+// Cooldown, buffer, and the swing's startup / active / recovery. Does not
+// spawn a volume. A subject with no remaining does not attack. move_id is
+// the caller's input. kMoveNone does not start a swing. The row's interval
+// is stored when a swing is accepted. buffer_early_press remembers the
+// player's last move only in the last kAttackBufferWindow of cooldown and
+// starts it once when cooldown reaches 0 and the current swing is over.
+// Earlier presses are dropped. A guarding subject does not start a new swing.
+// Opponents pass false.
+void AdvanceAttack(
     Subject* subjects,
     int subject_count,
     int attacker_index,
     float frame_seconds,
     int move_id,
-    AttackMark* volumes,
-    int& volume_count,
-    int volume_capacity,
     bool buffer_early_press);
 
-// One frame of a volume Attack already spawned. Shortens remaining_frames.
+// If this subject's swing entered its first active frame, spawn that row's
+// box into the trial list for the row's active frames. Later frames keep
+// the box only through TickAttackVolumes. The list is not a per-subject
+// slot. A full list does not spawn. Does not apply remaining or hitstop.
+void SpawnAttackVolume(
+    Subject* subjects,
+    int subject_count,
+    int attacker_index,
+    AttackMark* volumes,
+    int& volume_count,
+    int volume_capacity);
+
+// One frame of a volume SpawnAttackVolume already spawned. Shortens remaining_frames.
 // Overlap is not tested here. Walk and Δt are not used.
 void TickAttackVolume(AttackMark& mark);
 

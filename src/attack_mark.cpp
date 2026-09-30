@@ -9,11 +9,6 @@ constexpr float kAttackMarkBlue = 0.28f;
 
 }  // namespace
 
-static_assert(kAttackVolumeStartupFrames == 0, "the first ship has no windup");
-static_assert(kAttackVolumeRecoveryFrames == 0, "the first ship has no recovery after the hit");
-static_assert(
-    kAttackVolumeLifetimeFrames == kAttackVolumeActiveFrames,
-    "with startup and recovery at 0, the lifetime is the active range");
 static_assert(kAttackVolumeActiveFrames == 3, "draw and hit last three frames");
 
 void ClearAttackMark(AttackMark& mark) {
@@ -21,6 +16,8 @@ void ClearAttackMark(AttackMark& mark) {
     mark.remaining_frames = 0;
     mark.hit_mask = 0;
     mark.attacker_index = -1;
+    mark.forward_x = 0.0f;
+    mark.forward_z = 1.0f;
 }
 
 void ShowAttackMark(AttackMark& mark, const AxisBox& box, int attacker_index) {

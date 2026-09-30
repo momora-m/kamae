@@ -50,6 +50,12 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.retreating = false;
     subject.retreat_move = kMoveNone;
     subject.focus_move = kMoveNone;
+    subject.swing_move = kMoveNone;
+    subject.swing_elapsed = 0;
+    subject.guarding = false;
+    subject.velocity[0] = 0.0f;
+    subject.velocity[1] = 0.0f;
+    subject.velocity[2] = 0.0f;
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -62,6 +68,12 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].retreating = false;
         scene.subjects[index].retreat_move = kMoveNone;
         scene.subjects[index].focus_move = kMoveNone;
+        scene.subjects[index].swing_move = kMoveNone;
+        scene.subjects[index].swing_elapsed = 0;
+        scene.subjects[index].guarding = false;
+        scene.subjects[index].velocity[0] = 0.0f;
+        scene.subjects[index].velocity[1] = 0.0f;
+        scene.subjects[index].velocity[2] = 0.0f;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
@@ -91,6 +103,12 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].retreating = false;
         scene.subjects[index].retreat_move = kMoveNone;
         scene.subjects[index].focus_move = kMoveNone;
+        scene.subjects[index].swing_move = kMoveNone;
+        scene.subjects[index].swing_elapsed = 0;
+        scene.subjects[index].guarding = false;
+        scene.subjects[index].velocity[0] = 0.0f;
+        scene.subjects[index].velocity[1] = 0.0f;
+        scene.subjects[index].velocity[2] = 0.0f;
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -157,9 +175,27 @@ void ApplyVolumeHits(SceneState& scene) {
             if (target_index < 0 || target_index >= scene.subject_count) {
                 continue;
             }
-            ApplyHit(scene.subjects[target_index]);
+            if (!GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
+                ApplyHit(scene.subjects[target_index]);
+                AddHitVelocity(scene.subjects[target_index], scene.volumes[volume_index]);
+            }
         }
     }
+}
+
+void IntegrateAndResolve(SceneState& scene, int subject_index, float frame_seconds) {
+    if (subject_index < 0 || subject_index >= scene.subject_count) {
+        return;
+    }
+    Subject& subject = scene.subjects[subject_index];
+    if (subject.remaining <= 0) {
+        return;
+    }
+    const float previous_x = subject.position[0];
+    const float previous_z = subject.position[2];
+    IntegrateSubject(subject, frame_seconds);
+    ResolveHorizontalOverlap(
+        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
 }
 
 void ApplySubjectActions(
@@ -178,19 +214,23 @@ void ApplySubjectActions(
         return;
     }
 
-    const float previous_x = scene.subjects[subject_index].position[0];
-    const float previous_z = scene.subjects[subject_index].position[2];
-    WalkCube(scene.subjects[subject_index], basis, actions.walk, walk_seconds, face_move);
-    ResolveHorizontalOverlap(
-        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
-    Attack(
+    Subject& subject = scene.subjects[subject_index];
+    subject.guarding = actions.guard && subject.swing_move == kMoveNone;
+    AdvanceAttack(
         scene.subjects,
         scene.subject_count,
         subject_index,
         frame_seconds,
         actions.move,
+        buffer_early_press);
+    if (SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
+        WalkCube(subject, basis, actions.walk, walk_seconds, frame_seconds, face_move);
+    }
+    SpawnAttackVolume(
+        scene.subjects,
+        scene.subject_count,
+        subject_index,
         scene.volumes,
         scene.volume_count,
-        kVolumeCapacity,
-        buffer_early_press);
+        kVolumeCapacity);
 }

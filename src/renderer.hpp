@@ -59,6 +59,9 @@ struct StartLayout {
 // retreating walks backward and does not attack, until the attack box misses.
 // hitstop_frames is how many coming trial frames pass 0 seconds to walk and attack.
 // It is not the attack volume's lifetime.
+// swing_move is the move in startup, active, or recovery. 0 is none.
+// swing_elapsed is trial frames since that swing was accepted.
+// velocity persists across trial frames. It is not stored in a scene.
 struct Subject {
     float position[3] = {0.0f, 0.0f, 0.0f};
     float rotation_degrees[3] = {0.0f, 0.0f, 0.0f};
@@ -74,6 +77,11 @@ struct Subject {
     int retreat_move = 0;
     // Which move the in-range wait is counting for. 0 is none.
     int focus_move = 0;
+    int swing_move = 0;
+    int swing_elapsed = 0;
+    // True while this subject is guarding this trial frame.
+    bool guarding = false;
+    float velocity[3] = {0.0f, 0.0f, 0.0f};
 };
 
 struct SceneState {

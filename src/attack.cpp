@@ -10,19 +10,62 @@
 
 namespace {
 
-constexpr MoveRow kPoke{1.0f, 0.5f, kPlayerAttackInterval};
-constexpr MoveRow kLong{kLongMoveForward, 0.5f, kLongMoveInterval};
+constexpr MoveRow kPoke{
+    1.0f,
+    0.5f,
+    kPlayerAttackInterval,
+    kMoveStartupFrames,
+    kMoveActiveFrames,
+    kMoveRecoveryFrames};
+constexpr MoveRow kLong{
+    kLongMoveForward,
+    0.5f,
+    kLongMoveInterval,
+    kMoveStartupFrames,
+    kMoveActiveFrames,
+    kMoveRecoveryFrames};
 
 static_assert(kSubjectCapacity <= 32, "the volume hit mask has one bit per subject");
 static_assert(kPoke.interval == 0.4f, "the poke waits 0.4 seconds");
 static_assert(kLong.forward > kPoke.forward, "the long move reaches farther");
 static_assert(kLong.interval > kPoke.interval, "the long move waits longer");
+static_assert(kPoke.startup_frames == 1, "startup is the smallest positive lock");
+static_assert(kPoke.active_frames == 3, "active stays three frames");
+static_assert(kPoke.recovery_frames == 1, "recovery is the smallest positive lock");
+static_assert(kLong.startup_frames == kPoke.startup_frames, "both rows share startup");
+static_assert(kLong.active_frames == kPoke.active_frames, "both rows share active");
+static_assert(kLong.recovery_frames == kPoke.recovery_frames, "both rows share recovery");
+static_assert(
+    kAttackVolumeActiveFrames == kMoveActiveFrames, "the volume lasts the move's active window");
+
+void ClearSwing(Subject& subject) {
+    subject.swing_move = kMoveNone;
+    subject.swing_elapsed = 0;
+}
+
+int SwingLength(const MoveRow& row) {
+    return row.startup_frames + row.active_frames + row.recovery_frames;
+}
+
+bool InStartup(int elapsed, const MoveRow& row) {
+    return elapsed < row.startup_frames;
+}
+
+bool InRecovery(int elapsed, const MoveRow& row) {
+    const int active_end = row.startup_frames + row.active_frames;
+    return elapsed >= active_end && elapsed < SwingLength(row);
+}
 
 }  // namespace
 
 static_assert(kAttackReactionIdle < 0.0f, "an idle reaction is not a finished wait");
 static_assert(
     Subject{}.attack_reaction == kAttackReactionIdle, "a new subject has not started the in-range wait");
+static_assert(Subject{}.swing_move == kMoveNone, "a new subject is not in a swing");
+static_assert(Subject{}.swing_elapsed == 0, "a new subject has no swing frames");
+static_assert(!Subject{}.guarding, "a new subject is not guarding");
+static_assert(Subject{}.velocity[0] == 0.0f && Subject{}.velocity[1] == 0.0f && Subject{}.velocity[2] == 0.0f,
+    "a new subject has no leftover velocity");
 
 bool TryMove(int move_id, MoveRow& row) {
     if (move_id == kMovePoke) {
@@ -34,6 +77,14 @@ bool TryMove(int move_id, MoveRow& row) {
         return true;
     }
     return false;
+}
+
+bool MoveLocksWalk(const Subject& subject) {
+    MoveRow row{};
+    if (!TryMove(subject.swing_move, row)) {
+        return false;
+    }
+    return InStartup(subject.swing_elapsed, row) || InRecovery(subject.swing_elapsed, row);
 }
 
 // Yaw 0 faces +Z. The volume starts at the front face and extends the move's forward
@@ -118,15 +169,12 @@ void TickAttackVolumes(AttackMark* volumes, int& volume_count) {
     volume_count = kept;
 }
 
-void Attack(
+void AdvanceAttack(
     Subject* subjects,
     int subject_count,
     int attacker_index,
     float frame_seconds,
     int move_id,
-    AttackMark* volumes,
-    int& volume_count,
-    int volume_capacity,
     bool buffer_early_press) {
     if (subjects == nullptr || attacker_index < 0 || attacker_index >= subject_count) {
         return;
@@ -136,15 +184,29 @@ void Attack(
     attacker.attack_cooldown = AdvanceAttackTimer(attacker.attack_cooldown, frame_seconds);
     if (attacker.remaining <= 0) {
         attacker.buffered_move = kMoveNone;
+        ClearSwing(attacker);
         return;
     }
+
+    if (attacker.swing_move != kMoveNone) {
+        MoveRow swing_row{};
+        if (!TryMove(attacker.swing_move, swing_row)) {
+            ClearSwing(attacker);
+        } else {
+            attacker.swing_elapsed += 1;
+            if (attacker.swing_elapsed >= SwingLength(swing_row)) {
+                ClearSwing(attacker);
+            }
+        }
+    }
+
     // Judged after this frame's tick. A press earlier than the window is not stored.
     if (buffer_early_press && move_id != kMoveNone && attacker.attack_cooldown > 0.0f &&
         attacker.attack_cooldown <= kAttackBufferWindow) {
         attacker.buffered_move = move_id;
     }
     int fired = kMoveNone;
-    if (attacker.attack_cooldown <= 0.0f) {
+    if (attacker.attack_cooldown <= 0.0f && attacker.swing_move == kMoveNone && !attacker.guarding) {
         if (move_id != kMoveNone) {
             fired = move_id;
         } else if (buffer_early_press && attacker.buffered_move != kMoveNone) {
@@ -157,11 +219,39 @@ void Attack(
     }
     attacker.buffered_move = kMoveNone;
     attacker.attack_cooldown = row.interval;
+    attacker.swing_move = fired;
+    attacker.swing_elapsed = 0;
+}
 
+void SpawnAttackVolume(
+    Subject* subjects,
+    int subject_count,
+    int attacker_index,
+    AttackMark* volumes,
+    int& volume_count,
+    int volume_capacity) {
+    if (subjects == nullptr || attacker_index < 0 || attacker_index >= subject_count) {
+        return;
+    }
+    const Subject& attacker = subjects[attacker_index];
+    if (attacker.remaining <= 0) {
+        return;
+    }
+    MoveRow row{};
+    if (!TryMove(attacker.swing_move, row) || row.active_frames <= 0) {
+        return;
+    }
+    if (attacker.swing_elapsed != row.startup_frames) {
+        return;
+    }
     if (volumes == nullptr || volume_count < 0 || volume_count >= volume_capacity) {
         return;
     }
     AttackMark& volume = volumes[volume_count];
-    ShowAttackMark(volume, AttackBox(attacker, fired), attacker_index);
+    ShowAttackMark(volume, AttackBox(attacker, attacker.swing_move), attacker_index);
+    volume.remaining_frames = row.active_frames;
+    const float yaw = attacker.rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    volume.forward_x = std::sin(yaw);
+    volume.forward_z = std::cos(yaw);
     volume_count += 1;
 }
