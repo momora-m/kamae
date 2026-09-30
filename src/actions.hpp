@@ -9,14 +9,15 @@ constexpr int kMovePoke = 1;
 // Longer reach and a longer interval than the poke. See ADR 0027.
 constexpr int kMoveLong = 2;
 
-// Horizontal walk, which move to swing, whether to guard, and whether to jump,
+// Horizontal walk, which move to swing, whether to guard, jump, or dodge,
 // for one frame. Either controller emits this. kMoveNone does not swing.
-// Guard is not a move. Jump is not a move.
+// Guard, jump, and dodge are not moves.
 struct SubjectActions {
     HorizontalWalk walk;
     int move = kMoveNone;
     bool guard = false;
     bool jump = false;
+    bool dodge = false;
 };
 
 // The only place that reads keys. Builds the player's walk, attack, and guard.

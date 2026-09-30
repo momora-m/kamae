@@ -81,6 +81,9 @@ struct Subject {
     int swing_elapsed = 0;
     // True while this subject is guarding this trial frame.
     bool guarding = false;
+    // Trial frames left in a dodge, including the frame it started. 0 is none.
+    // Hits do not reduce remaining or start hitstop while this is above zero.
+    int dodge_frames = 0;
     float velocity[3] = {0.0f, 0.0f, 0.0f};
 };
 

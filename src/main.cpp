@@ -152,7 +152,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped(
         "In edit mode, left-drag orbits and stays. During play and after a stop, the camera sits behind the player. Hold the left button to look around. Releasing it returns the camera to the back.");
     ImGui::TextWrapped(
-        "During a trial, hover the viewport and press WASD. Movement uses the camera's horizontal yaw, including a temporary look. Pitch is ignored. While moving, the body faces that direction, and attacks fire along that facing. Q jumps once, and only on the floor. The center rises 0.5. Airborne subjects cannot jump. Opponents do not jump. Startup is 1 frame, then the hit box is out for 3 active frames, then recovery is 1 frame. Startup and recovery lock walk and a new move. Hold Shift to guard. Guarding locks walk and a new move. A frontal hit while guarding does not reduce remaining, does not start hitstop, and does not add velocity. Side and back still hit. An unblocked hit adds speed 1.0 along the volume's forward. One swing hits a subject once, even when blocked. On the floor, a walk replaces horizontal velocity. Airborne subjects cannot walk. Gravity 10 pulls down; landing clears Y velocity. A blocked axis also clears that velocity. The opponent walks in off the player's front, waits 0.5 seconds after a move's hit box overlaps, attacks with the short move when it reaches and the long move only when the short one does not, or guards instead when the player's poke or long box overlaps on the fire frame, then walks back until that hit box misses. Space is the short move (forward 1.0, every 0.4 seconds). F is the long move (forward 2.0, every 1.0 seconds). A press in the last 0.15 seconds keeps only the last move. Nothing walks or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
+        "During a trial, hover the viewport and press WASD. Movement uses the camera's horizontal yaw, including a temporary look. Pitch is ignored. While moving, the body faces that direction, and attacks fire along that facing. Q jumps once, and only on the floor. The center rises 0.5. Airborne subjects cannot jump. Opponents do not jump. E dodges once, and only on the floor. It sets horizontal speed 10 for 6 frames. Hits in those frames do not reduce remaining, do not start hitstop, and do not add velocity. Walk, attacks, guard, and jump do not start during a dodge. An in-progress swing keeps going. Opponents do not dodge. Startup is 1 frame, then the hit box is out for 3 active frames, then recovery is 1 frame. Startup and recovery lock walk and a new move. Hold Shift to guard. Guarding locks walk and a new move. A frontal hit while guarding does not reduce remaining, does not start hitstop, and does not add velocity. Side and back still hit. An unblocked hit adds speed 1.0 along the volume's forward. One swing hits a subject once, even when blocked. On the floor, a walk replaces horizontal velocity. Airborne subjects cannot walk. Gravity 10 pulls down; landing clears Y velocity. A blocked axis also clears that velocity. The opponent walks in off the player's front, waits 0.5 seconds after a move's hit box overlaps, attacks with the short move when it reaches and the long move only when the short one does not, or guards instead when the player's poke or long box overlaps on the fire frame, then walks back until that hit box misses. Space is the short move (forward 1.0, every 0.4 seconds). F is the long move (forward 2.0, every 1.0 seconds). A press in the last 0.15 seconds keeps only the last move. Nothing walks or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -217,6 +217,9 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     }
     if (scene.session == SessionMode::Trial || scene.session == SessionMode::Stopped) {
         TickAttackVolumes(scene.volumes, scene.volume_count);
+        if (scene.session == SessionMode::Trial) {
+            TryStartPlayerDodge(scene, subject_seconds[kPlayer], viewport_hovered);
+        }
         ApplyVolumeHits(scene);
     }
     if (scene.session == SessionMode::Trial) {
@@ -232,6 +235,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
         for (int index = 0; index < scene.subject_count; ++index) {
             IntegrateAndResolve(scene, index, subject_seconds[index]);
         }
+        TickDodgeFrames(scene);
         if (TrialStopReason(scene) != TrialStop::Continue) {
             scene.session = SessionMode::Stopped;
         }

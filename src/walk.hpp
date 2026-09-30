@@ -8,6 +8,9 @@ constexpr float kGravity = 10.0f;
 // One hop. The center rises by the cube half-extent, which is the smallest
 // height that still reads as leaving the floor. Speed is sqrt(2 * gravity * height).
 constexpr float kJumpHeight = 0.5f;
+// Six vsync frames at speed 10 travel 1.0, the short move's forward reach.
+constexpr int kDodgeFrames = 6;
+constexpr float kDodgeSpeed = 10.0f;
 constexpr float kFloorCenterY = 0.0f;
 constexpr float kFloorEpsilon = 0.0001f;
 

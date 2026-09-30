@@ -24,6 +24,11 @@ void AttachControllers(SceneState& scene);
 float ActiveCameraYaw(const SceneState& scene);
 float ActiveCameraPitch(const SceneState& scene);
 
+// Starts the player's dodge before hit checks when E is pressed on the floor.
+// Sets horizontal velocity once. Does nothing in the air, during hitstop,
+// or while a dodge is already running. Opponents do not call this.
+void TryStartPlayerDodge(SceneState& scene, float frame_seconds, bool viewport_hovered);
+
 // One attached controller. Emits actions, then the trial walks and attacks.
 // remaining 0 does nothing. Walk and Attack do not treat index 0 as special.
 void StepController(

@@ -49,6 +49,7 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.buffered_move = kMoveNone;
     subject.attack_reaction = kAttackReactionIdle;
     subject.hitstop_frames = 0;
+    subject.dodge_frames = 0;
     subject.retreating = false;
     subject.retreat_move = kMoveNone;
     subject.focus_move = kMoveNone;
@@ -67,6 +68,7 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].buffered_move = kMoveNone;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
+        scene.subjects[index].dodge_frames = 0;
         scene.subjects[index].retreating = false;
         scene.subjects[index].retreat_move = kMoveNone;
         scene.subjects[index].focus_move = kMoveNone;
@@ -102,6 +104,7 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].buffered_move = kMoveNone;
         scene.subjects[index].attack_reaction = kAttackReactionIdle;
         scene.subjects[index].hitstop_frames = 0;
+        scene.subjects[index].dodge_frames = 0;
         scene.subjects[index].retreating = false;
         scene.subjects[index].retreat_move = kMoveNone;
         scene.subjects[index].focus_move = kMoveNone;
@@ -177,10 +180,22 @@ void ApplyVolumeHits(SceneState& scene) {
             if (target_index < 0 || target_index >= scene.subject_count) {
                 continue;
             }
+            if (scene.subjects[target_index].dodge_frames > 0) {
+                continue;
+            }
             if (!GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
                 ApplyHit(scene.subjects[target_index]);
                 AddHitVelocity(scene.subjects[target_index], scene.volumes[volume_index]);
             }
+        }
+    }
+}
+
+void TickDodgeFrames(SceneState& scene) {
+    const int count = UsedCount(scene.subject_count);
+    for (int index = 0; index < count; ++index) {
+        if (scene.subjects[index].dodge_frames > 0) {
+            scene.subjects[index].dodge_frames -= 1;
         }
     }
 }
@@ -217,18 +232,19 @@ void ApplySubjectActions(
     }
 
     Subject& subject = scene.subjects[subject_index];
-    subject.guarding = actions.guard && subject.swing_move == kMoveNone;
+    const bool dodging = subject.dodge_frames > 0;
+    subject.guarding = !dodging && actions.guard && subject.swing_move == kMoveNone;
     AdvanceAttack(
         scene.subjects,
         scene.subject_count,
         subject_index,
         frame_seconds,
-        actions.move,
-        buffer_early_press);
-    if (SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
+        dodging ? kMoveNone : actions.move,
+        dodging ? false : buffer_early_press);
+    if (!dodging && SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
         WalkCube(subject, basis, actions.walk, walk_seconds, frame_seconds, face_move);
     }
-    if (actions.jump && SubjectOnFloor(subject) && frame_seconds > 0.0f) {
+    if (!dodging && actions.jump && SubjectOnFloor(subject) && frame_seconds > 0.0f) {
         subject.velocity[1] = std::sqrt(2.0f * kGravity * kJumpHeight);
     }
     SpawnAttackVolume(

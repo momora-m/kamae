@@ -73,6 +73,38 @@ float ActiveCameraYaw(const SceneState& scene) {
     return facing + std::numbers::pi_v<float> + scene.camera_yaw_offset;
 }
 
+void TryStartPlayerDodge(SceneState& scene, float frame_seconds, bool viewport_hovered) {
+    if (frame_seconds <= 0.0f || scene.subject_count <= kPlayer) {
+        return;
+    }
+    Subject& player = scene.subjects[kPlayer];
+    if (player.remaining <= 0 || player.dodge_frames > 0 || !SubjectOnFloor(player)) {
+        return;
+    }
+    const SubjectActions actions = PlayerActionsFromKeys(viewport_hovered);
+    if (!actions.dodge) {
+        return;
+    }
+
+    const float input = std::sqrt(actions.walk.strafe * actions.walk.strafe + actions.walk.forward * actions.walk.forward);
+    float dir_x = 0.0f;
+    float dir_z = 1.0f;
+    if (input > kDirectionEpsilon) {
+        const float strafe = actions.walk.strafe / input;
+        const float forward = actions.walk.forward / input;
+        const HorizontalBasis basis = BasisFromCameraYaw(ActiveCameraYaw(scene));
+        dir_x = basis.right_x * strafe + basis.forward_x * forward;
+        dir_z = basis.right_z * strafe + basis.forward_z * forward;
+    } else {
+        const float yaw = player.rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+        dir_x = std::sin(yaw);
+        dir_z = std::cos(yaw);
+    }
+    player.velocity[0] = dir_x * kDodgeSpeed;
+    player.velocity[2] = dir_z * kDodgeSpeed;
+    player.dodge_frames = kDodgeFrames;
+}
+
 float ActiveCameraPitch(const SceneState& scene) {
     const float pitch =
         scene.session == SessionMode::Editing ? scene.camera_pitch : scene.camera_pitch + scene.camera_pitch_offset;
