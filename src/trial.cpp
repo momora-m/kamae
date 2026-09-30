@@ -50,6 +50,8 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.retreating = false;
     subject.retreat_move = kMoveNone;
     subject.focus_move = kMoveNone;
+    subject.swing_move = kMoveNone;
+    subject.swing_elapsed = 0;
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -62,6 +64,8 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].retreating = false;
         scene.subjects[index].retreat_move = kMoveNone;
         scene.subjects[index].focus_move = kMoveNone;
+        scene.subjects[index].swing_move = kMoveNone;
+        scene.subjects[index].swing_elapsed = 0;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
@@ -91,6 +95,8 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].retreating = false;
         scene.subjects[index].retreat_move = kMoveNone;
         scene.subjects[index].focus_move = kMoveNone;
+        scene.subjects[index].swing_move = kMoveNone;
+        scene.subjects[index].swing_elapsed = 0;
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -178,19 +184,25 @@ void ApplySubjectActions(
         return;
     }
 
-    const float previous_x = scene.subjects[subject_index].position[0];
-    const float previous_z = scene.subjects[subject_index].position[2];
-    WalkCube(scene.subjects[subject_index], basis, actions.walk, walk_seconds, face_move);
-    ResolveHorizontalOverlap(
-        scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
-    Attack(
+    AdvanceAttack(
         scene.subjects,
         scene.subject_count,
         subject_index,
         frame_seconds,
         actions.move,
+        buffer_early_press);
+    if (!MoveLocksWalk(scene.subjects[subject_index])) {
+        const float previous_x = scene.subjects[subject_index].position[0];
+        const float previous_z = scene.subjects[subject_index].position[2];
+        WalkCube(scene.subjects[subject_index], basis, actions.walk, walk_seconds, face_move);
+        ResolveHorizontalOverlap(
+            scene.subjects, scene.subject_count, subject_index, previous_x, previous_z, scene.floor_half);
+    }
+    SpawnAttackVolume(
+        scene.subjects,
+        scene.subject_count,
+        subject_index,
         scene.volumes,
         scene.volume_count,
-        kVolumeCapacity,
-        buffer_early_press);
+        kVolumeCapacity);
 }
