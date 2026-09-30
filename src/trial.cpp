@@ -8,6 +8,8 @@
 #include "renderer.hpp"
 #include "walk.hpp"
 
+#include <cmath>
+
 namespace {
 
 int UsedCount(int subject_count) {
@@ -225,6 +227,9 @@ void ApplySubjectActions(
         buffer_early_press);
     if (SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
         WalkCube(subject, basis, actions.walk, walk_seconds, frame_seconds, face_move);
+    }
+    if (actions.jump && SubjectOnFloor(subject) && frame_seconds > 0.0f) {
+        subject.velocity[1] = std::sqrt(2.0f * kGravity * kJumpHeight);
     }
     SpawnAttackVolume(
         scene.subjects,

@@ -29,5 +29,6 @@ SubjectActions PlayerActionsFromKeys(bool viewport_hovered) {
         move = kMoveLong;
     }
     const bool guard = ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift);
-    return SubjectActions{HorizontalWalk{strafe, forward}, move, guard};
+    const bool jump = ImGui::IsKeyPressed(ImGuiKey_Q, false);
+    return SubjectActions{HorizontalWalk{strafe, forward}, move, guard, jump};
 }

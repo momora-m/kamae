@@ -5,6 +5,9 @@ struct Subject;
 constexpr float kWalkSpeed = 2.5f;
 // Pulls the cube down. From a height of 1, landing takes about half a second.
 constexpr float kGravity = 10.0f;
+// One hop. The center rises by the cube half-extent, which is the smallest
+// height that still reads as leaving the floor. Speed is sqrt(2 * gravity * height).
+constexpr float kJumpHeight = 0.5f;
 constexpr float kFloorCenterY = 0.0f;
 constexpr float kFloorEpsilon = 0.0001f;
 

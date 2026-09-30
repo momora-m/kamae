@@ -5,6 +5,9 @@
 #include <cmath>
 #include <numbers>
 
+static_assert(kJumpHeight == kCubeHalfExtent, "the hop rises by one cube half-extent");
+static_assert(kGravity == 10.0f, "jump speed is the square root of 2 * 10 * height");
+
 bool SubjectOnFloor(const Subject& subject) {
     return subject.position[1] <= kFloorCenterY + kFloorEpsilon;
 }
