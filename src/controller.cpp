@@ -71,6 +71,7 @@ float ActiveCameraYaw(const SceneState& scene) {
     // Yaw 0 faces +Z. Half a turn puts the eye on the back, looking along that facing.
     // Trial keeps camera_follow_yaw when move keys are released, so S does not
     // spin the camera around to the body's new yaw. Stopped uses the body yaw.
+    // camera_yaw_offset stays after the left button is released.
     const float facing_degrees = scene.session == SessionMode::Trial
         ? scene.camera_follow_yaw
         : scene.subjects[kPlayer].rotation_degrees[1];
