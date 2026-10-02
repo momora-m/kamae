@@ -14,6 +14,11 @@
 
 namespace {
 
+void ShowWeaponReadout(const Subject& subject) {
+    const char* form = subject.weapon_form == WeaponForm::Gun ? "gun" : "blade";
+    ImGui::Text("God arc %s, rounds %d", form, subject.rounds);
+}
+
 void CopySceneName(char* dest, int dest_size, const std::string& name) {
     if (dest == nullptr || dest_size <= 0) {
         return;
@@ -48,11 +53,17 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
                 ImGui::TextUnformatted("Every opponent in use is gone.");
             }
         }
+        if (scene.subject_count > kPlayer) {
+            ShowWeaponReadout(scene.subjects[kPlayer]);
+        }
         ImGui::End();
         return;
     }
     if (scene.session != SessionMode::Editing) {
         ImGui::TextUnformatted("Trial. Layout edits stay hidden.");
+        if (scene.subject_count > kPlayer) {
+            ShowWeaponReadout(scene.subjects[kPlayer]);
+        }
         ImGui::End();
         return;
     }
@@ -89,6 +100,7 @@ void ShowSubjectPanel(SceneState& scene, bool* yaw_held, int yaw_held_count) {
         if (index == kPlayer) {
             ImGui::TextUnformatted("Euler rotation in degrees");
             ImGui::DragFloat3("Rotation", scene.subjects[index].rotation_degrees, 0.5f);
+            ShowWeaponReadout(scene.subjects[index]);
         } else {
             ImGui::DragFloat("Yaw", &scene.subjects[index].rotation_degrees[1], 0.5f);
             if (yaw_held != nullptr && index < yaw_held_count && ImGui::IsItemActive()) {

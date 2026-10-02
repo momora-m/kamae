@@ -152,7 +152,7 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     ImGui::TextWrapped(
         "In edit mode, left-drag orbits and stays. During play and after a stop, the camera sits behind the player. While WASD is held, that back stays on the yaw from before the move. Releasing the keys leaves that follow yaw in place. Left-drag yaw and pitch stay after the button is released, and the next move uses that horizontal yaw.");
     ImGui::TextWrapped(
-        "During a trial, hover the viewport and press WASD. Movement uses the camera's horizontal yaw, including a look that stays after the button is released. Pitch is ignored. While moving, the body faces that direction: W along the look, A to the camera's left, D to its right, and S toward the camera so the face looks at it. Diagonals face that frame's move. Releasing the keys keeps the yaw and puts the camera on that back. Attacks fire along the body's yaw. Q jumps once, and only on the floor. The center rises 0.5. Airborne subjects cannot jump. Opponents do not jump. E dodges once, and only on the floor. It sets horizontal speed 10 for 6 frames. Hits in those frames do not reduce remaining, do not start hitstop, and do not add velocity. Walk, attacks, guard, and jump do not start during a dodge. An in-progress swing keeps going. Opponents do not dodge. Startup is 1 frame, then the hit box is out for 3 active frames, then recovery is 1 frame. Startup and recovery lock walk and a new move. Hold Shift to guard. Guarding locks walk and a new move. A frontal hit while guarding does not reduce remaining, does not start hitstop, and does not add velocity. Side and back still hit. An unblocked hit adds speed 1.0 along the volume's forward. One swing hits a subject once, even when blocked. On the floor, a walk replaces horizontal velocity. Airborne subjects cannot walk. Gravity 10 pulls down; landing clears Y velocity. A blocked axis also clears that velocity. The opponent walks in off the player's front, waits 0.5 seconds after a move's hit box overlaps, attacks with the short move when it reaches and the long move only when the short one does not, or guards instead when the player's poke or long box overlaps on the fire frame, then walks back until that hit box misses. Space is the short move (forward 1.0, every 0.4 seconds). F is the long move (forward 2.0, every 1.0 seconds). A press in the last 0.15 seconds keeps only the last move. Nothing walks or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
+        "During a trial, hover the viewport and press WASD. Movement uses the camera's horizontal yaw, including a look that stays after the button is released. Pitch is ignored. While moving, the body faces that direction: W along the look, A to the camera's left, D to its right, and S toward the camera so the face looks at it. Diagonals face that frame's move. Releasing the keys keeps the yaw and puts the camera on that back. Attacks fire along the body's yaw. Q jumps once, and only on the floor. The center rises 0.5. Airborne subjects cannot jump. Opponents do not jump. E dodges once, and only on the floor. It sets horizontal speed 10 for 6 frames. Hits in those frames do not reduce remaining, do not start hitstop, and do not add velocity. Walk, attacks, guard, and jump do not start during a dodge. The gun does not start either. R still switches during a dodge, but not on the frame E is pressed. An in-progress swing keeps going. Opponents do not dodge. Startup is 1 frame, then the hit box is out for 3 active frames, then recovery is 1 frame. Startup and recovery lock walk and a new move. Hold Shift to guard. Guarding locks walk and a new move. A frontal hit while guarding does not reduce remaining, does not start hitstop, and does not add velocity. Side and back still hit. An unblocked hit adds speed 1.0 along the volume's forward. One swing hits a subject once, even when blocked. On the floor, a walk replaces horizontal velocity. Airborne subjects cannot walk. Gravity 10 pulls down; landing clears Y velocity. A blocked axis also clears that velocity. The opponent walks in off the player's front, waits 0.5 seconds after a move's hit box overlaps, attacks with the short move when it reaches and the long move only when the short one does not, or guards instead when the player's poke or long box overlaps on the fire frame, then walks back until that hit box misses. The god arc starts on the blade. R switches blade and gun once. On the blade, Space is the short move (forward 1.0, every 0.4 seconds) and F is the long move (forward 2.0, every 1.0 seconds). Space and F do nothing on the gun. G fires the gun (forward 4.0, every 0.5 seconds) and spends one round. G does nothing on the blade, and does nothing at 0 rounds. Play starts with 3 rounds. The viewport shows the form and the rounds. R together with an attack uses the form after the switch. Opponents stay on the blade. A press in the last 0.15 seconds keeps only the last move that this form can fire. Nothing walks, switches, or attacks until Start. A subject that was hit passes 0 seconds into walk and attack for the next 4 frames. Other subjects keep moving. The hit box still counts down each frame.");
     ImGui::End();
 
     ImGui::Begin("Render", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -254,13 +254,25 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     }
     const float line_height = ImGui::GetTextLineHeight();
     for (int index = 0; index < scene.subject_count; ++index) {
-        char remaining_line[64];
-        std::snprintf(
-            remaining_line,
-            sizeof(remaining_line),
-            "Subject %d remaining %d",
-            index,
-            scene.subjects[index].remaining);
+        char remaining_line[96];
+        if (index == kPlayer) {
+            const char* form = scene.subjects[index].weapon_form == WeaponForm::Gun ? "gun" : "blade";
+            std::snprintf(
+                remaining_line,
+                sizeof(remaining_line),
+                "Subject %d remaining %d  %s  rounds %d",
+                index,
+                scene.subjects[index].remaining,
+                form,
+                scene.subjects[index].rounds);
+        } else {
+            std::snprintf(
+                remaining_line,
+                sizeof(remaining_line),
+                "Subject %d remaining %d",
+                index,
+                scene.subjects[index].remaining);
+        }
         ImGui::GetWindowDrawList()->AddText(
             ImVec2(view_origin.x + 8.0f, view_origin.y + 8.0f + line_height * static_cast<float>(index)),
             IM_COL32(236, 232, 223, 255),

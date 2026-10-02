@@ -13,6 +13,10 @@ constexpr float kPlayerAttackInterval = 0.4f;
 // At the builtin spacing of 4, this box still does not overlap.
 constexpr float kLongMoveForward = 2.0f;
 constexpr float kLongMoveInterval = 1.0f;
+// Gun row. Farther than the long move, so the builtin spacing of 4 overlaps.
+// Lateral stays 0.5. The interval sits between the two blade moves.
+constexpr float kGunForward = 4.0f;
+constexpr float kGunInterval = 0.5f;
 constexpr float kAttackBufferWindow = 0.15f;
 constexpr float kOpponentReactionDelay = 0.5f;
 // Below zero: the opponent is not standing in range, so the next entry waits again.
@@ -49,7 +53,7 @@ struct MoveRow {
     int recovery_frames = kMoveRecoveryFrames;
 };
 
-// False when move_id is kMoveNone or unknown. Row 0 is the poke. Row 1 is the long move.
+// False when move_id is kMoveNone or unknown. The poke, the long move, and the gun are rows.
 bool TryMove(int move_id, MoveRow& row);
 
 // Axis-aligned volume in front of the subject's yaw, using that move's reach.
@@ -62,11 +66,14 @@ bool MoveLocksWalk(const Subject& subject);
 // Cooldown, buffer, and the swing's startup / active / recovery. Does not
 // spawn a volume. A subject with no remaining does not attack. move_id is
 // the caller's input. kMoveNone does not start a swing. The row's interval
-// is stored when a swing is accepted. buffer_early_press remembers the
-// player's last move only in the last kAttackBufferWindow of cooldown and
-// starts it once when cooldown reaches 0 and the current swing is over.
-// Earlier presses are dropped. A guarding subject does not start a new swing.
-// Opponents pass false.
+// is stored when a swing is accepted. A gun swing also spends one round.
+// Blade moves are accepted only on the blade. The gun is accepted only on
+// the gun form, and only while rounds remain. A remembered move that no
+// longer matches the form, or a gun with no rounds, is dropped.
+// buffer_early_press remembers the player's last move only in the last
+// kAttackBufferWindow of cooldown and starts it once when cooldown reaches 0
+// and the current swing is over. Earlier presses are dropped. A guarding
+// subject does not start a new swing. Opponents pass false.
 void AdvanceAttack(
     Subject* subjects,
     int subject_count,

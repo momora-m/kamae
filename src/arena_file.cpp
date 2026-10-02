@@ -189,6 +189,8 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         subject.velocity[0] = 0.0f;
         subject.velocity[1] = 0.0f;
         subject.velocity[2] = 0.0f;
+        subject.weapon_form = WeaponForm::Blade;
+        subject.rounds = kGunRounds;
     }
     for (int index = parsed.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
@@ -205,6 +207,8 @@ void ApplyArena(SceneState& scene, const ParsedArena& parsed) {
         scene.subjects[index].velocity[0] = 0.0f;
         scene.subjects[index].velocity[1] = 0.0f;
         scene.subjects[index].velocity[2] = 0.0f;
+        scene.subjects[index].weapon_form = WeaponForm::Blade;
+        scene.subjects[index].rounds = 0;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();

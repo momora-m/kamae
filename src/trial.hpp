@@ -12,16 +12,18 @@ struct Subject;
 float TakeSubjectFrameSeconds(Subject& subject, float frame_seconds);
 
 // Remembers the edited layout, sets remaining to 3 and cooldown to 0, then
-// starts a trial. A buffered Space, an opponent's in-range wait, hitstop
-// frames, the current swing, and velocity are cleared. Combat progress is
-// not stored. Unsaved edits are included.
+// starts a trial. A buffered move, an opponent's in-range wait, hitstop
+// frames, the current swing, and velocity are cleared. The god arc returns
+// to the blade with kGunRounds. Combat progress is not stored. Unsaved edits
+// are included.
 void BeginTrial(SceneState& scene);
 
 // Puts the remembered layout back and returns to editing. Does not start again.
 void RestoreStartLayout(SceneState& scene);
 
-// Puts the remembered layout back and starts play. Remaining is 3 and cooldown
-// is 0. Does not remember the stopped layout. Does not return to editing.
+// Puts the remembered layout back and starts play. Remaining is 3, cooldown
+// is 0, the god arc is the blade, and rounds are kGunRounds. Does not
+// remember the stopped layout. Does not return to editing.
 void RestartTrial(SceneState& scene);
 
 // Why a trial stops. Continue leaves the session in play.
