@@ -622,7 +622,7 @@ void Renderer::LoadCharacterMesh() {
 
     LoadedMesh loaded;
     const std::filesystem::path path = ExecutableDirectory() / L"character.gltf";
-    if (!LoadCharacterMesh(path, loaded, mesh_error_)) {
+    if (!::LoadCharacterMesh(path, loaded, mesh_error_)) {
         return;
     }
     if (loaded.positions.size() % 3 != 0 || loaded.normals.size() != loaded.positions.size() || loaded.indices.empty()) {
