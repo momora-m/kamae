@@ -25,6 +25,12 @@ int CollectVolumeHits(
 // of the defender's yaw. Side and back do not block. Does not change remaining.
 bool GuardBlocksHit(const Subject& defender, const AttackMark& mark);
 
+// One volume against the roster. Overlapped parts lose one durability.
+// Body remaining drops only when no part was intact at the start of this
+// volume. A devour volume restores one round instead of damaging the body.
+// Dodge and a frontal guard mark the overlap and apply nothing.
+void ApplyOneVolume(AttackMark& mark, Subject* subjects, int subject_count);
+
 // Remaining loses 1. The next kHitstopFrames pass 0 seconds to walk and attack.
 void ApplyHit(Subject& subject);
 

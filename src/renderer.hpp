@@ -23,6 +23,36 @@ constexpr float kCameraPitchLimit = 1.48f;
 constexpr float kCameraDistanceMin = 1.5f;
 constexpr float kCameraDistanceMax = 20.0f;
 constexpr float kCubeHalfExtent = 0.5f;
+// Opponents are twice the player. The rest height puts their bottom on the
+// same floor as the player cube. Parts are a front cube and a side cube.
+constexpr float kOpponentBodyHalf = 1.0f;
+constexpr float kOpponentRestY = kOpponentBodyHalf - kCubeHalfExtent;
+
+// Center Y that puts this body's bottom on the player's floor. The player
+// half-extent returns 0, which is kFloorCenterY.
+constexpr float BodyRestY(float body_half) {
+    return body_half - kCubeHalfExtent;
+}
+
+constexpr int kPartCount = 2;
+constexpr int kPartDurability = 1;
+constexpr float kPartHalf = 0.30f;
+constexpr float kPartOffsetY = -0.15f;
+constexpr float kFrontPartOffsetZ = -1.15f;
+constexpr float kSidePartOffsetX = 1.15f;
+
+static_assert(kOpponentBodyHalf > kCubeHalfExtent, "the opponent is larger than the player");
+static_assert(kOpponentBodyHalf == 2.0f * kCubeHalfExtent, "the opponent is twice the player");
+static_assert(BodyRestY(kCubeHalfExtent) == 0.0f, "the player center stays on the floor center");
+static_assert(BodyRestY(kOpponentBodyHalf) == kOpponentRestY, "the large body uses the rest height");
+static_assert(kFrontPartOffsetZ - kPartHalf < -kOpponentBodyHalf, "the front part sticks out of the body");
+static_assert(kSidePartOffsetX + kPartHalf > kOpponentBodyHalf, "the side part sticks out of the body");
+static_assert(
+    kOpponentRestY + kPartOffsetY - kPartHalf < kCubeHalfExtent,
+    "parts meet the player's attack height");
+static_assert(
+    kOpponentRestY + kPartOffsetY + kPartHalf > -kCubeHalfExtent,
+    "parts meet the player's attack height");
 constexpr float kFloorHalfExtent = 20.0f;
 constexpr float kFloorHalfMin = 4.0f;
 constexpr float kFloorHalfMax = 40.0f;
@@ -90,14 +120,22 @@ struct Subject {
     // Not stored in a scene or the start layout. Opponents stay on the blade.
     WeaponForm weapon_form = WeaponForm::Blade;
     int rounds = kGunRounds;
+    // Hurtbox and walk obstacle. The player stays at kCubeHalfExtent.
+    // Opponents use kOpponentBodyHalf. Not stored in a scene.
+    float body_half = kCubeHalfExtent;
+    // Part durability. Players stay at 0. A broken part is 0, not drawn, and
+    // not a target. Not stored in a scene.
+    int part_remaining[kPartCount] = {};
 };
 
 struct SceneState {
     float clear_color[3] = {0.09f, 0.10f, 0.12f};
     // Builtin 1v1, separate from saved scenes. The player is at the origin, yaw 0.
-    // One opponent is at (0, 0, 4), yaw 180, facing -Z. The floor half is 20.
-    // At this distance the attack box does not reach. Unused slots stay past
-    // subject_count and are not simulated.
+    // One opponent is at (0, 0.5, 4), yaw 180, facing -Z. Y 0.5 puts the
+    // large body's bottom on the player's floor. The floor half is 20.
+    // At this distance the blade and devour miss the body and the front part.
+    // The gun reaches the front part. Unused slots stay past subject_count
+    // and are not simulated.
     int subject_count = 2;
     float floor_half = kFloorHalfExtent;
     SessionMode session = SessionMode::Editing;
@@ -105,7 +143,14 @@ struct SceneState {
     std::string layout_error;
     Subject subjects[kSubjectCapacity] = {
         Subject{{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.78f, 0.48f, 0.27f}, 3},
-        Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}, 3},
+        Subject{
+            .position = {0.0f, kOpponentRestY, 4.0f},
+            .rotation_degrees = {0.0f, 180.0f, 0.0f},
+            .color = {0.25f, 0.42f, 0.68f},
+            .remaining = 3,
+            .body_half = kOpponentBodyHalf,
+            .part_remaining = {kPartDurability, kPartDurability},
+        },
     };
     float camera_distance = 3.5f;
     // Edit-mode orbit. Play does not overwrite these. Yaw 0 looks from +Z.

@@ -17,6 +17,10 @@ constexpr float kLongMoveInterval = 1.0f;
 // Lateral stays 0.5. The interval sits between the two blade moves.
 constexpr float kGunForward = 4.0f;
 constexpr float kGunInterval = 0.5f;
+// Devour row. Closer than the poke, so the builtin spacing of 4 does not overlap.
+// A connected hit restores one round. Lateral stays 0.5. See ADR 0039.
+constexpr float kDevourForward = 0.6f;
+constexpr float kDevourInterval = 0.6f;
 constexpr float kAttackBufferWindow = 0.15f;
 constexpr float kOpponentReactionDelay = 0.5f;
 // Below zero: the opponent is not standing in range, so the next entry waits again.
@@ -53,7 +57,8 @@ struct MoveRow {
     int recovery_frames = kMoveRecoveryFrames;
 };
 
-// False when move_id is kMoveNone or unknown. The poke, the long move, and the gun are rows.
+// False when move_id is kMoveNone or unknown. The poke, the long move, the gun,
+// and devour are rows.
 bool TryMove(int move_id, MoveRow& row);
 
 // Axis-aligned volume in front of the subject's yaw, using that move's reach.
@@ -68,8 +73,10 @@ bool MoveLocksWalk(const Subject& subject);
 // the caller's input. kMoveNone does not start a swing. The row's interval
 // is stored when a swing is accepted. A gun swing also spends one round.
 // Blade moves are accepted only on the blade. The gun is accepted only on
-// the gun form, and only while rounds remain. A remembered move that no
-// longer matches the form, or a gun with no rounds, is dropped.
+// the gun form, and only while rounds remain. Devour is accepted on either
+// form, and only for the player. A remembered move that no longer matches
+// the form, or a gun with no rounds, is dropped. Devour is not dropped for
+// the form.
 // buffer_early_press remembers the player's last move only in the last
 // kAttackBufferWindow of cooldown and starts it once when cooldown reaches 0
 // and the current swing is over. Earlier presses are dropped. A guarding

@@ -2,6 +2,7 @@
 
 #include "mesh_file.hpp"
 #include "overlap.hpp"
+#include "parts.hpp"
 
 #include <DirectXMath.h>
 #include <d3dcompiler.h>
@@ -357,7 +358,9 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
         if (subject.remaining <= 0) {
             continue;
         }
+        const float body_scale = kCubeHalfExtent > 0.0f ? subject.body_half / kCubeHalfExtent : 1.0f;
         const DirectX::XMMATRIX world =
+            DirectX::XMMatrixScaling(body_scale, body_scale, body_scale) *
             DirectX::XMMatrixRotationRollPitchYaw(
                 DirectX::XMConvertToRadians(subject.rotation_degrees[0]),
                 DirectX::XMConvertToRadians(subject.rotation_degrees[1]),
@@ -380,6 +383,30 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             body_indices,
             body_index_count,
             constants);
+        for (int part = 0; part < kPartCount; ++part) {
+            if (subject.part_remaining[part] <= 0) {
+                continue;
+            }
+            const AxisBox part_box = PartBox(subject, part);
+            const float size_x = part_box.max_x - part_box.min_x;
+            const float size_y = part_box.max_y - part_box.min_y;
+            const float size_z = part_box.max_z - part_box.min_z;
+            const DirectX::XMMATRIX part_world =
+                DirectX::XMMatrixScaling(size_x, size_y, size_z) *
+                DirectX::XMMatrixTranslation(
+                    (part_box.min_x + part_box.max_x) * 0.5f,
+                    (part_box.min_y + part_box.max_y) * 0.5f,
+                    (part_box.min_z + part_box.max_z) * 0.5f);
+            DirectX::XMStoreFloat4x4(&constants.world, part_world);
+            constants.albedo = {0.95f, 0.55f, 0.22f, 1.0f};
+            DrawLitMesh(
+                context_.Get(),
+                constant_buffer_.Get(),
+                vertex_buffer_.Get(),
+                index_buffer_.Get(),
+                index_count_,
+                constants);
+        }
     }
 
     for (int index = 0; index < scene.volume_count && index < kVolumeCapacity; ++index) {

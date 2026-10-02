@@ -4,12 +4,13 @@
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "controller.hpp"
+#include "parts.hpp"
 #include "renderer.hpp"
 
 namespace {
 
 constexpr float kSpawnX = 0.0f;
-constexpr float kSpawnY = 0.0f;
+constexpr float kSpawnY = kOpponentRestY;
 constexpr float kSpawnZ = 4.0f;
 constexpr float kSpawnYaw = 180.0f;
 constexpr float kSpawnRed = 0.25f;
@@ -38,6 +39,8 @@ void AddSubject(SceneState& scene) {
         3,
         0.0f,
     };
+    AssignRoleBody(subject, scene.subject_count);
+    LiftBodyToFloor(subject);
     scene.subject_count += 1;
     AttachControllers(scene);
 }
@@ -48,6 +51,7 @@ void ApplyBuiltinLayout(SceneState& scene) {
     scene.subject_count = builtin.subject_count;
     for (int index = 0; index < builtin.subject_count && index < kSubjectCapacity; ++index) {
         scene.subjects[index] = builtin.subjects[index];
+        AssignRoleBody(scene.subjects[index], index);
     }
     for (int index = scene.subject_count; index < kSubjectCapacity; ++index) {
         scene.subjects[index].remaining = 0;
@@ -66,6 +70,7 @@ void ApplyBuiltinLayout(SceneState& scene) {
         scene.subjects[index].velocity[2] = 0.0f;
         scene.subjects[index].weapon_form = WeaponForm::Blade;
         scene.subjects[index].rounds = 0;
+        ClearRoleBody(scene.subjects[index]);
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();
@@ -78,5 +83,6 @@ void RemoveLastSubject(SceneState& scene) {
     }
     scene.subject_count -= 1;
     scene.subjects[scene.subject_count].remaining = 0;
+    ClearRoleBody(scene.subjects[scene.subject_count]);
     AttachControllers(scene);
 }

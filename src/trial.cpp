@@ -5,6 +5,7 @@
 #include "controller.hpp"
 #include "hit.hpp"
 #include "overlap.hpp"
+#include "parts.hpp"
 #include "renderer.hpp"
 #include "walk.hpp"
 
@@ -34,7 +35,7 @@ void RememberPose(SubjectPose& pose, const Subject& subject) {
     pose.color[2] = subject.color[2];
 }
 
-void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
+void ApplyRememberedPose(Subject& subject, const SubjectPose& pose, int index) {
     subject.position[0] = pose.position[0];
     subject.position[1] = pose.position[1];
     subject.position[2] = pose.position[2];
@@ -61,6 +62,7 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.velocity[2] = 0.0f;
     subject.weapon_form = WeaponForm::Blade;
     subject.rounds = kGunRounds;
+    AssignRoleBody(subject, index);
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -82,6 +84,7 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].velocity[2] = 0.0f;
         scene.subjects[index].weapon_form = WeaponForm::Blade;
         scene.subjects[index].rounds = 0;
+        ClearRoleBody(scene.subjects[index]);
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
@@ -120,6 +123,7 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].velocity[2] = 0.0f;
         scene.subjects[index].weapon_form = WeaponForm::Blade;
         scene.subjects[index].rounds = kGunRounds;
+        AssignRoleBody(scene.subjects[index], index);
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -134,7 +138,7 @@ void RestoreStartLayout(SceneState& scene) {
     scene.floor_half = scene.start_layout.floor_half;
     scene.subject_count = count;
     for (int index = 0; index < count; ++index) {
-        ApplyRememberedPose(scene.subjects[index], scene.start_layout.subjects[index]);
+        ApplyRememberedPose(scene.subjects[index], scene.start_layout.subjects[index], index);
     }
     ClearUnused(scene, count);
     scene.layout_error.clear();
@@ -147,7 +151,7 @@ void RestartTrial(SceneState& scene) {
     scene.floor_half = scene.start_layout.floor_half;
     scene.subject_count = count;
     for (int index = 0; index < count; ++index) {
-        ApplyRememberedPose(scene.subjects[index], scene.start_layout.subjects[index]);
+        ApplyRememberedPose(scene.subjects[index], scene.start_layout.subjects[index], index);
     }
     ClearUnused(scene, count);
     scene.layout_error.clear();
@@ -178,28 +182,9 @@ TrialStop TrialStopReason(const SceneState& scene) {
 }
 
 void ApplyVolumeHits(SceneState& scene) {
-    Hit hits[kSubjectCapacity]{};
     const int volume_count = scene.volume_count < kVolumeCapacity ? scene.volume_count : kVolumeCapacity;
     for (int volume_index = 0; volume_index < volume_count; ++volume_index) {
-        const int hit_count = CollectVolumeHits(
-            scene.volumes[volume_index],
-            scene.subjects,
-            scene.subject_count,
-            hits,
-            kSubjectCapacity);
-        for (int hit_index = 0; hit_index < hit_count; ++hit_index) {
-            const int target_index = hits[hit_index].target_index;
-            if (target_index < 0 || target_index >= scene.subject_count) {
-                continue;
-            }
-            if (scene.subjects[target_index].dodge_frames > 0) {
-                continue;
-            }
-            if (!GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
-                ApplyHit(scene.subjects[target_index]);
-                AddHitVelocity(scene.subjects[target_index], scene.volumes[volume_index]);
-            }
-        }
+        ApplyOneVolume(scene.volumes[volume_index], scene.subjects, scene.subject_count);
     }
 }
 
@@ -252,7 +237,11 @@ void ApplySubjectActions(
     subject.guarding = !dodging && actions.guard && subject.swing_move == kMoveNone;
     int move_id = kMoveNone;
     if (!dodging) {
-        if (subject.weapon_form == WeaponForm::Gun) {
+        // C with a swing devours and does not fire. E already started a dodge
+        // this frame when it could, so dodge_frames suppresses devour too.
+        if (actions.devour) {
+            move_id = kMoveDevour;
+        } else if (subject.weapon_form == WeaponForm::Gun) {
             move_id = actions.fire_gun ? kMoveGun : kMoveNone;
         } else {
             move_id = actions.move;

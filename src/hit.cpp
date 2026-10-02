@@ -1,8 +1,10 @@
 #include "hit.hpp"
 
+#include "actions.hpp"
 #include "attack.hpp"
 #include "attack_mark.hpp"
 #include "overlap.hpp"
+#include "parts.hpp"
 #include "renderer.hpp"
 
 #include <cmath>
@@ -58,6 +60,83 @@ bool GuardBlocksHit(const Subject& defender, const AttackMark& mark) {
     const float forward_x = std::sin(yaw);
     const float forward_z = std::cos(yaw);
     return to_x * forward_x + to_z * forward_z > 0.0f;
+}
+
+namespace {
+
+unsigned PartBit(int subject_index, int part_index) {
+    return 1u << static_cast<unsigned>(subject_index * kPartCount + part_index);
+}
+
+void RestoreOneRound(Subject& subject) {
+    if (subject.rounds < kGunRounds) {
+        subject.rounds += 1;
+    }
+}
+
+}  // namespace
+
+void ApplyOneVolume(AttackMark& mark, Subject* subjects, int subject_count) {
+    if (subjects == nullptr || subject_count <= 0) {
+        return;
+    }
+    if (mark.remaining_frames <= 0 || !mark.visible) {
+        return;
+    }
+    const int count = subject_count < kSubjectCapacity ? subject_count : kSubjectCapacity;
+    for (int index = 0; index < count; ++index) {
+        if (index == mark.attacker_index) {
+            continue;
+        }
+        Subject& subject = subjects[index];
+        if (subject.remaining <= 0) {
+            continue;
+        }
+        const bool blocked = subject.dodge_frames > 0 || GuardBlocksHit(subject, mark);
+        const bool body_was_open = !AnyPartIntact(subject);
+        bool broke_part = false;
+        for (int part = 0; part < kPartCount; ++part) {
+            if (subject.part_remaining[part] <= 0) {
+                continue;
+            }
+            const unsigned bit = PartBit(index, part);
+            if ((mark.part_mask & bit) != 0u) {
+                continue;
+            }
+            if (!AxisBoxesOverlap(mark.box, PartBox(subject, part))) {
+                continue;
+            }
+            mark.part_mask |= bit;
+            if (blocked) {
+                continue;
+            }
+            subject.part_remaining[part] -= 1;
+            broke_part = true;
+        }
+
+        const unsigned body_bit = 1u << static_cast<unsigned>(index);
+        bool new_body = false;
+        if ((mark.hit_mask & body_bit) == 0u && AxisBoxesOverlap(mark.box, SubjectBox(subject))) {
+            mark.hit_mask |= body_bit;
+            new_body = true;
+        }
+        if (blocked) {
+            continue;
+        }
+        if (mark.restores_round) {
+            if (broke_part || (new_body && body_was_open)) {
+                if (mark.attacker_index == kPlayer && mark.attacker_index >= 0 &&
+                    mark.attacker_index < count) {
+                    RestoreOneRound(subjects[mark.attacker_index]);
+                }
+            }
+            continue;
+        }
+        if (new_body && body_was_open) {
+            ApplyHit(subject);
+            AddHitVelocity(subject, mark);
+        }
+    }
 }
 
 void ApplyHit(Subject& subject) {

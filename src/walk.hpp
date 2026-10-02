@@ -28,7 +28,8 @@ struct HorizontalWalk {
     float forward;
 };
 
-// True when the cube center is on or below the floor plane.
+// True when the body center is on or below the height that puts its bottom
+// on the player's floor.
 bool SubjectOnFloor(const Subject& subject);
 
 // Writes horizontal velocity from the walk intent. Zero intent clears
@@ -43,6 +44,6 @@ void WalkCube(
     bool face_move);
 
 // Adds gravity to Y velocity, then position += velocity * frame_seconds.
-// Clamps the center to the floor and clears Y velocity when landed.
+// Clamps the center to BodyRestY and clears Y velocity when landed.
 // frame_seconds 0 leaves position and velocity as they are.
 void IntegrateSubject(Subject& subject, float frame_seconds);

@@ -29,4 +29,4 @@
 
 ## 後続の更新
 
-二つ目の攻撃技（長リーチ・長クールダウン）は [0027](0027-second-move-reaches-farther.md) で追加された。発生と硬直のフレーム数は [0030](0030-move-has-startup-and-recovery.md) で技の行へ移した。
+二つ目の攻撃技（長リーチ・長クールダウン）は [0027](0027-second-move-reaches-farther.md) で追加された。発生と硬直のフレーム数は [0030](0030-move-has-startup-and-recovery.md) で技の行へ移した。銃の行は [0038](0038-god-arc-switches-blade-and-gun.md)、捕食の行は [0039](0039-devour-restores-rounds.md) で足した。

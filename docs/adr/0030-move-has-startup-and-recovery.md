@@ -38,4 +38,4 @@
 
 ## 後続の更新
 
-ガードは [0031](0031-guard-blocks-frontal-hit.md) で入力へ足した。発生と硬直の途中ではガードは始まらない。銃の行は [0038](0038-god-arc-switches-blade-and-gun.md) で足した。発生・持続・硬直は刃と同じ 1、3、1 である。
+ガードは [0031](0031-guard-blocks-frontal-hit.md) で入力へ足した。発生と硬直の途中ではガードは始まらない。銃の行は [0038](0038-god-arc-switches-blade-and-gun.md) で足した。捕食の行は [0039](0039-devour-restores-rounds.md) で足した。発生・持続・硬直は刃と同じ 1、3、1 である。

@@ -56,6 +56,8 @@ add_executable(editor WIN32
   src/attack.hpp
   src/hit.cpp
   src/hit.hpp
+  src/parts.cpp
+  src/parts.hpp
   src/attack_mark.cpp
   src/attack_mark.hpp
   src/approach.cpp
