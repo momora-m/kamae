@@ -278,7 +278,8 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
         return;
     }
 
-    const float pitch = std::clamp(scene.camera_pitch, -kCameraPitchLimit, kCameraPitchLimit);
+    const float camera_yaw = ActiveCameraYaw(scene);
+    const float pitch = ActiveCameraPitch(scene);
     const float distance = std::clamp(scene.camera_distance, kCameraDistanceMin, kCameraDistanceMax);
     const float cos_pitch = std::cos(pitch);
     const Subject& player = scene.subjects[kPlayer];
@@ -287,9 +288,9 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
     const DirectX::XMVECTOR eye = DirectX::XMVectorAdd(
         target,
         DirectX::XMVectorSet(
-            distance * cos_pitch * std::sin(scene.camera_yaw),
+            distance * cos_pitch * std::sin(camera_yaw),
             distance * std::sin(pitch),
-            distance * cos_pitch * std::cos(scene.camera_yaw),
+            distance * cos_pitch * std::cos(camera_yaw),
             0.0f));
 
     const DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(

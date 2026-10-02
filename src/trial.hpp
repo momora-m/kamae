@@ -37,14 +37,19 @@ TrialStop TrialStopReason(const SceneState& scene);
 
 // Walk and attack from emitted actions. On the floor, a walk replaces
 // horizontal velocity. Air and locked frames leave that velocity.
-// Startup, recovery, and guard skip the walk. Position is integrated after
+// Startup, recovery, and guard skip the walk. A dodge also skips the walk,
+// a new move, guard, and jump. Position is integrated after
 // hits so an unblocked hit can add velocity this frame.
 // walk_seconds may be shorter than frame_seconds so an approach does not
 // step past the target. Walk and Attack do not treat index 0 as special.
 // Collect overlaps from the trial volumes and apply remaining, hitstop,
-// and hit velocity. Blocked hits do not add velocity. Volumes do not
-// change remaining themselves.
+// and hit velocity. Blocked hits do not add velocity. A dodge consumes the
+// overlap and does not reduce remaining, start hitstop, or add velocity.
+// Volumes do not change remaining themselves.
 void ApplyVolumeHits(SceneState& scene);
+
+// Counts one trial frame off every dodge. Call once at the end of a trial frame.
+void TickDodgeFrames(SceneState& scene);
 
 // Gravity and leftover velocity, then overlap. Call after ApplyVolumeHits
 // so a new volume can add force before the step.

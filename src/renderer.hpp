@@ -81,6 +81,9 @@ struct Subject {
     int swing_elapsed = 0;
     // True while this subject is guarding this trial frame.
     bool guarding = false;
+    // Trial frames left in a dodge, including the frame it started. 0 is none.
+    // Hits do not reduce remaining or start hitstop while this is above zero.
+    int dodge_frames = 0;
     float velocity[3] = {0.0f, 0.0f, 0.0f};
 };
 
@@ -100,9 +103,13 @@ struct SceneState {
         Subject{{0.0f, 0.0f, 4.0f}, {0.0f, 180.0f, 0.0f}, {0.25f, 0.42f, 0.68f}, 3},
     };
     float camera_distance = 3.5f;
+    // Edit-mode orbit. Play does not overwrite these. Yaw 0 looks from +Z.
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
-    bool walk_with_camera_yaw = false;
+    // Added while the left button is held during play or a stopped trial.
+    // Released back to zero, which sits the camera on the player's back.
+    float camera_yaw_offset = 0.0f;
+    float camera_pitch_offset = 0.0f;
     AttackMark volumes[kVolumeCapacity]{};
     int volume_count = 0;
     Controller controllers[kSubjectCapacity] = {
