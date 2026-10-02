@@ -20,10 +20,9 @@ struct Controller {
 void AttachControllers(SceneState& scene);
 
 // Yaw used to draw and to walk. Editing keeps the stored orbit.
-// Play sits behind camera_follow_yaw, plus the drag offset. A stopped trial
-// sits behind the player's yaw. HoldPlayCameraFollow keeps the follow yaw
-// from chasing a move that is still held.
-void HoldPlayCameraFollow(SceneState& scene, bool viewport_hovered);
+// Play sits behind camera_follow_yaw, plus the drag offset. Releasing move
+// keys does not copy the body's yaw onto that follow yaw. A stopped trial
+// sits behind the player's yaw.
 float ActiveCameraYaw(const SceneState& scene);
 float ActiveCameraPitch(const SceneState& scene);
 

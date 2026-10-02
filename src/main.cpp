@@ -211,7 +211,6 @@ void ShowScenePanels(Renderer& renderer, SceneState& scene, float frame_seconds)
     const bool viewport_hovered = ImGui::IsItemHovered();
     float subject_seconds[kSubjectCapacity]{};
     if (scene.session == SessionMode::Trial) {
-        HoldPlayCameraFollow(scene, viewport_hovered);
         for (int index = 0; index < scene.subject_count; ++index) {
             subject_seconds[index] = TakeSubjectFrameSeconds(scene.subjects[index], frame_seconds);
         }

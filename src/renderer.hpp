@@ -107,11 +107,13 @@ struct SceneState {
     float camera_yaw = 0.65f;
     float camera_pitch = 0.40f;
     // Added while the left button is held during play or a stopped trial.
-    // Released back to zero, which sits the camera on the follow yaw's back.
+    // Released back to zero. Play then sits on the follow yaw's back.
+    // A stopped trial sits on the player's yaw.
     float camera_yaw_offset = 0.0f;
     // Degrees. Play's back-follow uses this, not the yaw a move just wrote.
-    // A walk intent holds it so A/S/D do not spin the basis. No intent copies
-    // the player's yaw, and the camera sits on that back. Editing ignores it.
+    // A held move leaves it fixed so A/S/D do not spin the basis. Releasing
+    // the keys leaves it there too. BeginTrial and RestartTrial set it from
+    // the start yaw. Editing ignores it. A stopped trial does not read it.
     float camera_follow_yaw = 0.0f;
     float camera_pitch_offset = 0.0f;
     AttackMark volumes[kVolumeCapacity]{};
