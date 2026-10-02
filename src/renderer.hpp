@@ -118,7 +118,7 @@ static_assert(kSubjectCapacity == 4, "the list holds the player and three more")
 static_assert(kVolumeCapacity == kSubjectCapacity, "the volume list fits one swing per subject");
 static_assert(kSubjectCapacity > kPlayer, "the player fits in the list");
 
-// Win32 window, DirectX 11 device, one lit cube per subject, and a ground plate in an offscreen target.
+// Win32 window, DirectX 11 device, one lit mesh per subject, and a ground plate in an offscreen target.
 class Renderer {
 public:
     Renderer() = default;
@@ -142,11 +142,13 @@ public:
     ID3D11DeviceContext* Context() const { return context_.Get(); }
     ImTextureID SceneColorTexture() const;
     const std::string& ShaderError() const { return shader_error_; }
+    const std::string& MeshError() const { return mesh_error_; }
 
 private:
     bool CreateBackBuffer(std::wstring& error);
     void ReleaseBackBuffer();
     bool CreatePipeline(std::wstring& error);
+    void LoadCharacterMesh();
     bool CompileShaders(std::string& error);
     bool EnsureSceneTarget(UINT width, UINT height);
     void UnbindTargets();
@@ -167,6 +169,8 @@ private:
     Microsoft::WRL::ComPtr<ID3D11InputLayout> input_layout_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> vertex_buffer_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> index_buffer_;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> character_vertex_buffer_;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> character_index_buffer_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> floor_vertex_buffer_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> floor_index_buffer_;
     Microsoft::WRL::ComPtr<ID3D11Buffer> constant_buffer_;
@@ -178,8 +182,11 @@ private:
     UINT pending_width_ = 0;
     UINT pending_height_ = 0;
     UINT index_count_ = 0;
+    UINT character_index_count_ = 0;
     UINT floor_index_count_ = 0;
+    bool character_ready_ = false;
     bool swap_chain_occluded_ = false;
     bool device_lost_ = false;
     std::string shader_error_;
+    std::string mesh_error_;
 };

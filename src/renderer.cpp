@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 
+#include "mesh_file.hpp"
 #include "overlap.hpp"
 
 #include <DirectXMath.h>
@@ -35,6 +36,9 @@ struct FrameConstants {
 };
 
 static_assert(sizeof(FrameConstants) % 16 == 0, "constant buffer size must be a multiple of 16");
+static_assert(kCharacterMeshMinY == -kCubeHalfExtent, "the mesh feet stay on the cube bottom");
+static_assert(kCharacterMeshMaxY > kCubeHalfExtent, "the mesh may rise above the cube");
+static_assert(kCharacterMeshMaxX > kCubeHalfExtent && kCharacterMeshMaxZ > kCubeHalfExtent, "the mesh may pass the cube on X and Z");
 
 struct Face {
     float normal[3];
@@ -360,12 +364,20 @@ void Renderer::DrawScene(const SceneState& scene, UINT width, UINT height) {
             DirectX::XMMatrixTranslation(subject.position[0], subject.position[1], subject.position[2]);
         DirectX::XMStoreFloat4x4(&constants.world, world);
         constants.albedo = {subject.color[0], subject.color[1], subject.color[2], 1.0f};
+        ID3D11Buffer* body_vertices = vertex_buffer_.Get();
+        ID3D11Buffer* body_indices = index_buffer_.Get();
+        UINT body_index_count = index_count_;
+        if (character_ready_) {
+            body_vertices = character_vertex_buffer_.Get();
+            body_indices = character_index_buffer_.Get();
+            body_index_count = character_index_count_;
+        }
         DrawLitMesh(
             context_.Get(),
             constant_buffer_.Get(),
-            vertex_buffer_.Get(),
-            index_buffer_.Get(),
-            index_count_,
+            body_vertices,
+            body_indices,
+            body_index_count,
             constants);
     }
 
@@ -444,6 +456,10 @@ void Renderer::Shutdown() {
     floor_vertex_buffer_.Reset();
     index_buffer_.Reset();
     vertex_buffer_.Reset();
+    character_index_buffer_.Reset();
+    character_vertex_buffer_.Reset();
+    character_index_count_ = 0;
+    character_ready_ = false;
     input_layout_.Reset();
     pixel_shader_.Reset();
     vertex_shader_.Reset();
@@ -592,7 +608,63 @@ bool Renderer::CreatePipeline(std::wstring& error) {
         error = HresultMessage(L"深度ステンシルステートを作成できませんでした。", hr);
         return false;
     }
+    LoadCharacterMesh();
     return true;
+}
+
+void Renderer::LoadCharacterMesh() {
+    mesh_error_.clear();
+    character_ready_ = false;
+    character_index_count_ = 0;
+    character_index_buffer_.Reset();
+    character_vertex_buffer_.Reset();
+
+    LoadedMesh loaded;
+    const std::filesystem::path path = ExecutableDirectory() / L"character.gltf";
+    if (!LoadCharacterMesh(path, loaded, mesh_error_)) {
+        return;
+    }
+    if (loaded.positions.size() % 3 != 0 || loaded.normals.size() != loaded.positions.size() || loaded.indices.empty()) {
+        mesh_error_ = "The character mesh uses an unsupported feature.";
+        return;
+    }
+
+    std::vector<Vertex> vertices(loaded.positions.size() / 3);
+    for (std::size_t index = 0; index < vertices.size(); ++index) {
+        vertices[index] = Vertex{
+            {loaded.positions[index * 3], loaded.positions[index * 3 + 1], loaded.positions[index * 3 + 2]},
+            {loaded.normals[index * 3], loaded.normals[index * 3 + 1], loaded.normals[index * 3 + 2]},
+        };
+    }
+
+    D3D11_BUFFER_DESC vertex_desc{};
+    vertex_desc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
+    vertex_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    vertex_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA vertex_data{};
+    vertex_data.pSysMem = vertices.data();
+    HRESULT hr = device_->CreateBuffer(&vertex_desc, &vertex_data, character_vertex_buffer_.GetAddressOf());
+    if (FAILED(hr)) {
+        mesh_error_ = "Could not create the character vertex buffer.";
+        character_vertex_buffer_.Reset();
+        return;
+    }
+
+    D3D11_BUFFER_DESC index_desc{};
+    index_desc.ByteWidth = static_cast<UINT>(sizeof(std::uint16_t) * loaded.indices.size());
+    index_desc.Usage = D3D11_USAGE_IMMUTABLE;
+    index_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA index_data{};
+    index_data.pSysMem = loaded.indices.data();
+    hr = device_->CreateBuffer(&index_desc, &index_data, character_index_buffer_.GetAddressOf());
+    if (FAILED(hr)) {
+        mesh_error_ = "Could not create the character index buffer.";
+        character_vertex_buffer_.Reset();
+        character_index_buffer_.Reset();
+        return;
+    }
+    character_index_count_ = static_cast<UINT>(loaded.indices.size());
+    character_ready_ = true;
 }
 
 bool Renderer::CompileShaders(std::string& error) {
