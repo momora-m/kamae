@@ -34,4 +34,4 @@
 
 ## 後続の更新
 
-発生と硬直は [0030](0030-move-has-startup-and-recovery.md) で、両技とも 1 フレームになった。持続 3 フレームは据え置きである。
+発生と硬直は [0030](0030-move-has-startup-and-recovery.md) で、両技とも 1 フレームになった。持続 3 フレームは据え置きである。銃の行は [0038](0038-god-arc-switches-blade-and-gun.md) で足した。刃の二つの行は変えていない。

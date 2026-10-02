@@ -31,5 +31,9 @@ SubjectActions PlayerActionsFromKeys(bool viewport_hovered) {
     const bool guard = ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift);
     const bool jump = ImGui::IsKeyPressed(ImGuiKey_Q, false);
     const bool dodge = ImGui::IsKeyPressed(ImGuiKey_E, false);
-    return SubjectActions{HorizontalWalk{strafe, forward}, move, guard, jump, dodge};
+    // R and G stay free of WASD, Space, F, Shift, Q, and E. The session
+    // drops the attack that does not match the form after R.
+    const bool fire_gun = ImGui::IsKeyPressed(ImGuiKey_G, false);
+    const bool switch_form = ImGui::IsKeyPressed(ImGuiKey_R, false);
+    return SubjectActions{HorizontalWalk{strafe, forward}, move, guard, jump, dodge, fire_gun, switch_form};
 }

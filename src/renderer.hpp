@@ -13,6 +13,7 @@
 
 #include "imgui.h"
 
+#include "actions.hpp"
 #include "attack_mark.hpp"
 #include "controller.hpp"
 
@@ -85,6 +86,10 @@ struct Subject {
     // Hits do not reduce remaining or start hitstop while this is above zero.
     int dodge_frames = 0;
     float velocity[3] = {0.0f, 0.0f, 0.0f};
+    // God arc. Blade uses the poke and the long move. Gun spends rounds.
+    // Not stored in a scene or the start layout. Opponents stay on the blade.
+    WeaponForm weapon_form = WeaponForm::Blade;
+    int rounds = kGunRounds;
 };
 
 struct SceneState {

@@ -59,6 +59,8 @@ void ApplyRememberedPose(Subject& subject, const SubjectPose& pose) {
     subject.velocity[0] = 0.0f;
     subject.velocity[1] = 0.0f;
     subject.velocity[2] = 0.0f;
+    subject.weapon_form = WeaponForm::Blade;
+    subject.rounds = kGunRounds;
 }
 
 void ClearUnused(SceneState& scene, int count) {
@@ -78,6 +80,8 @@ void ClearUnused(SceneState& scene, int count) {
         scene.subjects[index].velocity[0] = 0.0f;
         scene.subjects[index].velocity[1] = 0.0f;
         scene.subjects[index].velocity[2] = 0.0f;
+        scene.subjects[index].weapon_form = WeaponForm::Blade;
+        scene.subjects[index].rounds = 0;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
 }
@@ -114,6 +118,8 @@ void BeginTrial(SceneState& scene) {
         scene.subjects[index].velocity[0] = 0.0f;
         scene.subjects[index].velocity[1] = 0.0f;
         scene.subjects[index].velocity[2] = 0.0f;
+        scene.subjects[index].weapon_form = WeaponForm::Blade;
+        scene.subjects[index].rounds = kGunRounds;
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
@@ -239,13 +245,25 @@ void ApplySubjectActions(
 
     Subject& subject = scene.subjects[subject_index];
     const bool dodging = subject.dodge_frames > 0;
+    // E and R on the same frame dodge only. A later dodge frame still switches.
+    if (actions.switch_form && frame_seconds > 0.0f && !actions.dodge) {
+        subject.weapon_form = subject.weapon_form == WeaponForm::Gun ? WeaponForm::Blade : WeaponForm::Gun;
+    }
     subject.guarding = !dodging && actions.guard && subject.swing_move == kMoveNone;
+    int move_id = kMoveNone;
+    if (!dodging) {
+        if (subject.weapon_form == WeaponForm::Gun) {
+            move_id = actions.fire_gun ? kMoveGun : kMoveNone;
+        } else {
+            move_id = actions.move;
+        }
+    }
     AdvanceAttack(
         scene.subjects,
         scene.subject_count,
         subject_index,
         frame_seconds,
-        dodging ? kMoveNone : actions.move,
+        move_id,
         dodging ? false : buffer_early_press);
     if (!dodging && SubjectOnFloor(subject) && !MoveLocksWalk(subject) && !subject.guarding) {
         WalkCube(subject, basis, actions.walk, walk_seconds, frame_seconds, face_move);

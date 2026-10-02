@@ -64,6 +64,8 @@ void ApplyBuiltinLayout(SceneState& scene) {
         scene.subjects[index].velocity[0] = 0.0f;
         scene.subjects[index].velocity[1] = 0.0f;
         scene.subjects[index].velocity[2] = 0.0f;
+        scene.subjects[index].weapon_form = WeaponForm::Blade;
+        scene.subjects[index].rounds = 0;
     }
     ClearAttackVolumes(scene.volumes, scene.volume_count);
     scene.layout_error.clear();
