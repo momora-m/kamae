@@ -9,9 +9,10 @@ static_assert(kJumpHeight == kCubeHalfExtent, "the hop rises by one cube half-ex
 static_assert(kGravity == 10.0f, "jump speed is the square root of 2 * 10 * height");
 static_assert(kDodgeFrames == 6, "the dodge lasts six trial frames");
 static_assert(kDodgeSpeed == 10.0f, "six frames at 60fps travel the short reach of 1");
+static_assert(kFloorCenterY == 0.0f, "BodyRestY is measured from a floor center of 0");
 
 bool SubjectOnFloor(const Subject& subject) {
-    return subject.position[1] <= kFloorCenterY + kFloorEpsilon;
+    return subject.position[1] <= BodyRestY(subject.body_half) + kFloorEpsilon;
 }
 
 void WalkCube(
@@ -54,8 +55,9 @@ void IntegrateSubject(Subject& subject, float frame_seconds) {
     subject.position[0] += subject.velocity[0] * frame_seconds;
     subject.position[1] += subject.velocity[1] * frame_seconds;
     subject.position[2] += subject.velocity[2] * frame_seconds;
-    if (subject.position[1] < kFloorCenterY) {
-        subject.position[1] = kFloorCenterY;
+    const float rest_y = BodyRestY(subject.body_half);
+    if (subject.position[1] < rest_y) {
+        subject.position[1] = rest_y;
         subject.velocity[1] = 0.0f;
     }
 }

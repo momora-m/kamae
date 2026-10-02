@@ -63,15 +63,31 @@ static_assert(kDevour.interval > kAttackBufferWindow, "the buffer window fits in
 static_assert(kDevour.startup_frames == kPoke.startup_frames, "devour shares startup");
 static_assert(kDevour.active_frames == kPoke.active_frames, "devour shares active");
 static_assert(kDevour.recovery_frames == kPoke.recovery_frames, "devour shares recovery");
+static_assert(Subject{}.body_half == kCubeHalfExtent, "a new subject matches the player cube");
 static_assert(
-    kCubeHalfExtent + kDevourForward <= 4.0f - kCubeHalfExtent,
-    "devour misses the builtin spacing of 4");
-// Builtin opponent sits at z = 4. Shared faces do not overlap, so the gun's
-// far face must pass the opponent's near face. The long move still falls short.
-static_assert(kCubeHalfExtent + kGunForward > 4.0f - kCubeHalfExtent, "the gun overlaps the builtin spacing of 4");
+    Subject{}.part_remaining[0] == 0 && Subject{}.part_remaining[1] == 0,
+    "a new subject has no parts");
+// Builtin opponent sits at z = 4 with the large half-extent. Shared faces do
+// not overlap, so the gun's far face must pass the body's near face. The long
+// move and devour still fall short of the body and of the front part. A
+// centered swing's lateral misses the side part.
+static_assert(kCubeHalfExtent + kGunForward > 4.0f - kOpponentBodyHalf, "the gun overlaps the large body at spacing 4");
 static_assert(
-    kCubeHalfExtent + kLongMoveForward <= 4.0f - kCubeHalfExtent,
-    "the long move still misses the builtin spacing of 4");
+    kCubeHalfExtent + kLongMoveForward <= 4.0f - kOpponentBodyHalf,
+    "the long move still misses the large body");
+static_assert(
+    kCubeHalfExtent + kDevourForward <= 4.0f - kOpponentBodyHalf,
+    "devour misses the large body from spacing 4");
+static_assert(
+    kCubeHalfExtent + kGunForward > 4.0f + kFrontPartOffsetZ - kPartHalf,
+    "the gun reaches the front part from spacing 4");
+static_assert(
+    kCubeHalfExtent + kLongMoveForward <= 4.0f + kFrontPartOffsetZ - kPartHalf,
+    "the long move misses the front part from spacing 4");
+static_assert(
+    kCubeHalfExtent + kDevourForward <= 4.0f + kFrontPartOffsetZ - kPartHalf,
+    "devour misses the front part from spacing 4");
+static_assert(kSidePartOffsetX - kPartHalf > kPoke.lateral, "a centered swing misses the side part");
 static_assert(kGunRounds == 3, "three rounds show a spent shot before empty");
 static_assert(
     kAttackVolumeActiveFrames == kMoveActiveFrames, "the volume lasts the move's active window");
@@ -157,12 +173,13 @@ AxisBox AttackBox(const Subject& attacker, int move_id) {
     const bool known = TryMove(move_id, row);
     const float forward = known ? row.forward : 0.0f;
     const float lateral = known ? row.lateral : 0.0f;
+    const float half = attacker.body_half > 0.0f ? attacker.body_half : kCubeHalfExtent;
     const float yaw = attacker.rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
     const float forward_x = std::sin(yaw);
     const float forward_z = std::cos(yaw);
     const float right_x = std::cos(yaw);
     const float right_z = -std::sin(yaw);
-    const float forward_steps[2] = {kCubeHalfExtent, kCubeHalfExtent + forward};
+    const float forward_steps[2] = {half, half + forward};
     const float lateral_steps[2] = {-lateral, lateral};
 
     float min_x = 0.0f;
@@ -189,10 +206,10 @@ AxisBox AttackBox(const Subject& attacker, int move_id) {
 
     return AxisBox{
         min_x,
-        attacker.position[1] - kCubeHalfExtent,
+        attacker.position[1] - half,
         min_z,
         max_x,
-        attacker.position[1] + kCubeHalfExtent,
+        attacker.position[1] + half,
         max_z,
     };
 }

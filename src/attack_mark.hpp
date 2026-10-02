@@ -24,6 +24,8 @@ struct AttackMark {
     // Devour volumes restore one round on a connected overlap. They do not
     // reduce remaining. Other volumes leave this false.
     bool restores_round = false;
+    // Parts already resolved by this volume. One bit per subject part.
+    unsigned part_mask = 0;
 };
 
 void ClearAttackMark(AttackMark& mark);

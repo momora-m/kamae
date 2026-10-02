@@ -53,7 +53,8 @@ bool Blocked(
 }  // namespace
 
 AxisBox SubjectBox(const Subject& subject) {
-    return BoxFromCenter(subject.position[0], subject.position[1], subject.position[2], kCubeHalfExtent);
+    const float half = subject.body_half > 0.0f ? subject.body_half : kCubeHalfExtent;
+    return BoxFromCenter(subject.position[0], subject.position[1], subject.position[2], half);
 }
 
 bool AxisBoxesOverlap(const AxisBox& a, const AxisBox& b) {
