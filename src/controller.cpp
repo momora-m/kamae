@@ -64,12 +64,32 @@ HorizontalBasis ApproachBasis(const Subject& mover, const Subject& target) {
 
 }  // namespace
 
+void HoldPlayCameraFollow(SceneState& scene, bool viewport_hovered) {
+    if (scene.session != SessionMode::Trial || scene.subject_count <= kPlayer) {
+        return;
+    }
+    const Subject& player = scene.subjects[kPlayer];
+    const SubjectActions actions = PlayerActionsFromKeys(viewport_hovered);
+    const float input = std::sqrt(
+        actions.walk.strafe * actions.walk.strafe + actions.walk.forward * actions.walk.forward);
+    // A held direction must keep the basis. Copying the facing this move writes
+    // turns A, S, and D onto a new camera every frame. W stays put only because
+    // it already faces the look direction.
+    if (player.remaining <= 0 || input < kDirectionEpsilon) {
+        scene.camera_follow_yaw = player.rotation_degrees[1];
+    }
+}
+
 float ActiveCameraYaw(const SceneState& scene) {
     if (scene.session == SessionMode::Editing) {
         return scene.camera_yaw;
     }
     // Yaw 0 faces +Z. Half a turn puts the eye on the back, looking along that facing.
-    const float facing = scene.subjects[kPlayer].rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
+    // Trial uses the held follow yaw. Stopped has no walk, so the body yaw is the back.
+    const float facing_degrees = scene.session == SessionMode::Trial
+        ? scene.camera_follow_yaw
+        : scene.subjects[kPlayer].rotation_degrees[1];
+    const float facing = facing_degrees * (std::numbers::pi_v<float> / 180.0f);
     return facing + std::numbers::pi_v<float> + scene.camera_yaw_offset;
 }
 

@@ -117,6 +117,9 @@ void BeginTrial(SceneState& scene) {
     }
     ClearUnused(scene, count);
     AttachControllers(scene);
+    if (count > kPlayer) {
+        scene.camera_follow_yaw = scene.subjects[kPlayer].rotation_degrees[1];
+    }
     scene.session = SessionMode::Trial;
 }
 
@@ -143,6 +146,9 @@ void RestartTrial(SceneState& scene) {
     ClearUnused(scene, count);
     scene.layout_error.clear();
     AttachControllers(scene);
+    if (count > kPlayer) {
+        scene.camera_follow_yaw = scene.subjects[kPlayer].rotation_degrees[1];
+    }
     scene.session = SessionMode::Trial;
 }
 
