@@ -18,6 +18,7 @@ void ClearAttackMark(AttackMark& mark) {
     mark.attacker_index = -1;
     mark.forward_x = 0.0f;
     mark.forward_z = 1.0f;
+    mark.restores_round = false;
 }
 
 void ShowAttackMark(AttackMark& mark, const AxisBox& box, int attacker_index) {
@@ -29,6 +30,7 @@ void ShowAttackMark(AttackMark& mark, const AxisBox& box, int attacker_index) {
     mark.color[0] = kAttackMarkRed;
     mark.color[1] = kAttackMarkGreen;
     mark.color[2] = kAttackMarkBlue;
+    mark.restores_round = false;
 }
 
 void ClearAttackVolumes(AttackMark* volumes, int& volume_count) {

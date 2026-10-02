@@ -195,10 +195,19 @@ void ApplyVolumeHits(SceneState& scene) {
             if (scene.subjects[target_index].dodge_frames > 0) {
                 continue;
             }
-            if (!GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
-                ApplyHit(scene.subjects[target_index]);
-                AddHitVelocity(scene.subjects[target_index], scene.volumes[volume_index]);
+            if (GuardBlocksHit(scene.subjects[target_index], scene.volumes[volume_index])) {
+                continue;
             }
+            if (scene.volumes[volume_index].restores_round) {
+                const int attacker_index = scene.volumes[volume_index].attacker_index;
+                if (attacker_index == kPlayer && attacker_index < scene.subject_count &&
+                    scene.subjects[attacker_index].rounds < kGunRounds) {
+                    scene.subjects[attacker_index].rounds += 1;
+                }
+                continue;
+            }
+            ApplyHit(scene.subjects[target_index]);
+            AddHitVelocity(scene.subjects[target_index], scene.volumes[volume_index]);
         }
     }
 }
@@ -252,7 +261,11 @@ void ApplySubjectActions(
     subject.guarding = !dodging && actions.guard && subject.swing_move == kMoveNone;
     int move_id = kMoveNone;
     if (!dodging) {
-        if (subject.weapon_form == WeaponForm::Gun) {
+        // C with a swing devours and does not fire. E already started a dodge
+        // this frame when it could, so dodge_frames suppresses devour too.
+        if (actions.devour) {
+            move_id = kMoveDevour;
+        } else if (subject.weapon_form == WeaponForm::Gun) {
             move_id = actions.fire_gun ? kMoveGun : kMoveNone;
         } else {
             move_id = actions.move;

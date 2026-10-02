@@ -10,7 +10,10 @@ constexpr int kMovePoke = 1;
 constexpr int kMoveLong = 2;
 // Gun row. Farther than the long move. Spends one round. See ADR 0038.
 constexpr int kMoveGun = 3;
+// Devour row. Closer than the poke. Restores one round on a hit. See ADR 0039.
+constexpr int kMoveDevour = 4;
 // Shots at the start of play. Enough to see one spent round before empty.
+// Devour does not raise this past the start count.
 constexpr int kGunRounds = 3;
 
 // One weapon. Blade uses the poke and the long move. Gun uses kMoveGun.
@@ -22,9 +25,10 @@ enum class WeaponForm {
 
 // Horizontal walk, which move to swing, whether to guard, jump, or dodge,
 // for one frame. Either controller emits this. kMoveNone does not swing.
-// Guard, jump, and dodge are not moves. fire_gun and switch_form are not
-// moves either. The session keeps only the attack that matches the form
-// after a switch. Opponents leave both false.
+// Guard, jump, and dodge are not moves. fire_gun, switch_form, and devour
+// are not moves either. The session keeps only the attack that matches the
+// form after a switch. Devour is accepted on both forms. Opponents leave
+// fire_gun, switch_form, and devour false.
 struct SubjectActions {
     HorizontalWalk walk;
     int move = kMoveNone;
@@ -33,6 +37,7 @@ struct SubjectActions {
     bool dodge = false;
     bool fire_gun = false;
     bool switch_form = false;
+    bool devour = false;
 };
 
 // The only place that reads keys. Builds the player's walk, attack, and guard.

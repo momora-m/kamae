@@ -31,6 +31,13 @@ constexpr MoveRow kGun{
     kMoveStartupFrames,
     kMoveActiveFrames,
     kMoveRecoveryFrames};
+constexpr MoveRow kDevour{
+    kDevourForward,
+    0.5f,
+    kDevourInterval,
+    kMoveStartupFrames,
+    kMoveActiveFrames,
+    kMoveRecoveryFrames};
 
 static_assert(kSubjectCapacity <= 32, "the volume hit mask has one bit per subject");
 static_assert(kPoke.interval == 0.4f, "the poke waits 0.4 seconds");
@@ -49,6 +56,16 @@ static_assert(kGun.interval > kAttackBufferWindow, "the buffer window fits in th
 static_assert(kGun.startup_frames == kPoke.startup_frames, "the gun shares startup");
 static_assert(kGun.active_frames == kPoke.active_frames, "the gun shares active");
 static_assert(kGun.recovery_frames == kPoke.recovery_frames, "the gun shares recovery");
+static_assert(kDevour.forward > 0.0f && kDevour.forward < kPoke.forward, "devour reaches closer than the poke");
+static_assert(kDevour.lateral == kPoke.lateral, "only devour's forward reach changes");
+static_assert(kDevour.interval > kGun.interval && kDevour.interval < kLong.interval, "devour waits between the gun and the long move");
+static_assert(kDevour.interval > kAttackBufferWindow, "the buffer window fits in the devour interval");
+static_assert(kDevour.startup_frames == kPoke.startup_frames, "devour shares startup");
+static_assert(kDevour.active_frames == kPoke.active_frames, "devour shares active");
+static_assert(kDevour.recovery_frames == kPoke.recovery_frames, "devour shares recovery");
+static_assert(
+    kCubeHalfExtent + kDevourForward <= 4.0f - kCubeHalfExtent,
+    "devour misses the builtin spacing of 4");
 // Builtin opponent sits at z = 4. Shared faces do not overlap, so the gun's
 // far face must pass the opponent's near face. The long move still falls short.
 static_assert(kCubeHalfExtent + kGunForward > 4.0f - kCubeHalfExtent, "the gun overlaps the builtin spacing of 4");
@@ -78,7 +95,11 @@ bool InRecovery(int elapsed, const MoveRow& row) {
 }
 
 // Blade rows only on the blade. The gun only in gun form, and only with a round left.
-bool AcceptsMove(const Subject& attacker, int move_id) {
+// Devour is either form, and only the player. Rounds are not required.
+bool AcceptsMove(const Subject& attacker, int attacker_index, int move_id) {
+    if (move_id == kMoveDevour) {
+        return attacker_index == kPlayer;
+    }
     if (move_id == kMoveGun) {
         return attacker.weapon_form == WeaponForm::Gun && attacker.rounds > 0;
     }
@@ -112,6 +133,10 @@ bool TryMove(int move_id, MoveRow& row) {
     }
     if (move_id == kMoveGun) {
         row = kGun;
+        return true;
+    }
+    if (move_id == kMoveDevour) {
+        row = kDevour;
         return true;
     }
     return false;
@@ -239,19 +264,20 @@ void AdvanceAttack(
     }
 
     // A remembered move from the other form, or a gun with no rounds, does not fire later.
-    if (attacker.buffered_move != kMoveNone && !AcceptsMove(attacker, attacker.buffered_move)) {
+    // Devour stays remembered across a form switch.
+    if (attacker.buffered_move != kMoveNone && !AcceptsMove(attacker, attacker_index, attacker.buffered_move)) {
         attacker.buffered_move = kMoveNone;
     }
     // Judged after this frame's tick. A press earlier than the window is not stored.
-    if (buffer_early_press && AcceptsMove(attacker, move_id) && attacker.attack_cooldown > 0.0f &&
+    if (buffer_early_press && AcceptsMove(attacker, attacker_index, move_id) && attacker.attack_cooldown > 0.0f &&
         attacker.attack_cooldown <= kAttackBufferWindow) {
         attacker.buffered_move = move_id;
     }
     int fired = kMoveNone;
     if (attacker.attack_cooldown <= 0.0f && attacker.swing_move == kMoveNone && !attacker.guarding) {
-        if (AcceptsMove(attacker, move_id)) {
+        if (AcceptsMove(attacker, attacker_index, move_id)) {
             fired = move_id;
-        } else if (buffer_early_press && AcceptsMove(attacker, attacker.buffered_move)) {
+        } else if (buffer_early_press && AcceptsMove(attacker, attacker_index, attacker.buffered_move)) {
             fired = attacker.buffered_move;
         }
     }
@@ -295,6 +321,12 @@ void SpawnAttackVolume(
     AttackMark& volume = volumes[volume_count];
     ShowAttackMark(volume, AttackBox(attacker, attacker.swing_move), attacker_index);
     volume.remaining_frames = row.active_frames;
+    if (attacker.swing_move == kMoveDevour) {
+        volume.restores_round = true;
+        volume.color[0] = 0.42f;
+        volume.color[1] = 0.74f;
+        volume.color[2] = 0.38f;
+    }
     const float yaw = attacker.rotation_degrees[1] * (std::numbers::pi_v<float> / 180.0f);
     volume.forward_x = std::sin(yaw);
     volume.forward_z = std::cos(yaw);

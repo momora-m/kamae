@@ -21,6 +21,9 @@ struct AttackMark {
     // Attacker's yaw forward when the volume was spawned. Yaw 0 faces +Z.
     float forward_x = 0.0f;
     float forward_z = 1.0f;
+    // Devour volumes restore one round on a connected overlap. They do not
+    // reduce remaining. Other volumes leave this false.
+    bool restores_round = false;
 };
 
 void ClearAttackMark(AttackMark& mark);
